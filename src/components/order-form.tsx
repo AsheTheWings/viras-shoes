@@ -15,14 +15,17 @@ import {
 import type { ShoeWithSizes } from "@/lib/types";
 import { placeOrder } from "@/app/actions";
 import { CheckCircle } from "lucide-react";
+import { useLocale } from "@/lib/locale-context";
 
 interface OrderFormProps {
   shoe: ShoeWithSizes;
+  mobile?: boolean;
 }
 
 const SIZES = [39, 40, 41, 42, 43, 44, 45] as const;
 
-export function OrderForm({ shoe }: OrderFormProps) {
+export function OrderForm({ shoe, mobile }: OrderFormProps) {
+  const { t } = useLocale();
   const [isPending, startTransition] = useTransition();
   const [selectedSize, setSelectedSize] = useState<number | null>(null);
   const [open, setOpen] = useState(false);
@@ -57,15 +60,15 @@ export function OrderForm({ shoe }: OrderFormProps) {
     return (
       <div className="flex items-center gap-2 rounded-lg border border-green-200 bg-green-50 px-3 py-2 text-green-800">
         <CheckCircle className="h-4 w-4" />
-        <p className="text-sm font-medium">Order placed!</p>
+        <p className="text-sm font-medium">{t("order.placed")}</p>
       </div>
     );
   }
 
   return (
-    <div className="flex items-center gap-4 py-1">
+    <div className={mobile ? "space-y-2" : "flex items-center gap-4 py-1"}>
       {/* Size boxes */}
-      <div className="flex gap-1.5">
+      <div className={mobile ? "flex gap-1.5" : "flex gap-1.5"}>
         {SIZES.map((size) => {
           const stock = sizeStock(size);
           const isSelected = selectedSize === size;
@@ -74,7 +77,9 @@ export function OrderForm({ shoe }: OrderFormProps) {
               key={size}
               disabled={stock <= 0}
               onClick={() => setSelectedSize(size)}
-              className={`flex h-9 w-9 items-center justify-center rounded-md text-xs font-medium transition-all ${
+              className={`flex items-center justify-center rounded font-medium transition-all ${
+                mobile ? "h-6 flex-1 text-[10px]" : "h-9 w-9 text-xs"
+              } ${
                 stock <= 0
                   ? "cursor-not-allowed bg-white/10 text-white/30 line-through"
                   : isSelected
@@ -91,46 +96,50 @@ export function OrderForm({ shoe }: OrderFormProps) {
       {/* Order Now → opens dialog */}
       <motion.span
         key={selectedSize}
-        animate={selectedSize ? { scale: [1, 1.07, 1] } : { scale: 1 }}
+        animate={selectedSize && !mobile ? { scale: [1, 1.07, 1] } : { scale: 1 }}
         transition={
-          selectedSize
+          selectedSize && !mobile
             ? { duration: 0.9, ease: "easeInOut", repeat: Infinity }
             : { duration: 0.2 }
         }
-        className="inline-flex"
+        className={mobile ? "block" : "inline-flex"}
       >
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogTrigger
           render={
             <Button
               disabled={!selectedSize}
-              className="h-9 rounded-md px-6 text-xs font-semibold"
+              className={
+                mobile
+                  ? "h-9 w-full rounded text-xs font-semibold"
+                  : "h-9 rounded-md px-6 text-xs font-semibold"
+              }
             />
           }
         >
-          Order Now — {shoe.price} MAD
+          {t("order.now")} — {shoe.price} MAD
         </DialogTrigger>
         <DialogContent className="p-8">
           <DialogHeader>
             <DialogTitle>
-              {shoe.name} — Size {selectedSize}
+              {shoe.name} — {t("order.size")} {selectedSize}
             </DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <Label htmlFor="order-name">Name *</Label>
+              <Label htmlFor="order-name">{t("order.name")}</Label>
               <Input
                 id="order-name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="Your name"
+                placeholder={t("order.name.placeholder")}
                 required
                 className="mt-1"
               />
             </div>
             <div className="flex gap-3">
               <div className="flex-1">
-                <Label htmlFor="order-phone">Phone</Label>
+                <Label htmlFor="order-phone">{t("order.phone")}</Label>
                 <Input
                   id="order-phone"
                   value={phone}
@@ -140,7 +149,7 @@ export function OrderForm({ shoe }: OrderFormProps) {
                 />
               </div>
               <div className="flex-1">
-                <Label htmlFor="order-email">Email</Label>
+                <Label htmlFor="order-email">{t("order.email")}</Label>
                 <Input
                   id="order-email"
                   type="email"
@@ -161,7 +170,7 @@ export function OrderForm({ shoe }: OrderFormProps) {
               disabled={isPending || !name.trim()}
               className="w-full"
             >
-              {isPending ? "Placing..." : `Confirm — ${shoe.price} MAD`}
+              {isPending ? t("order.placing") : `${t("order.confirm")} — ${shoe.price} MAD`}
             </Button>
           </form>
         </DialogContent>

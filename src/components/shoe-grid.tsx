@@ -8,6 +8,8 @@ import { assetUrl } from "@/lib/supabase";
 import type { ShoeWithSizes, ImageVariant } from "@/lib/types";
 import { IMAGE_VARIANTS } from "@/lib/types";
 import { OrderForm } from "./order-form";
+import { useIsDesktop } from "@/lib/hooks";
+import { useLocale } from "@/lib/locale-context";
 
 interface ShoeGridProps {
   shoes: ShoeWithSizes[];
@@ -23,6 +25,8 @@ const VARIANT_LABELS: Record<ImageVariant, string> = {
 const SPRING = { type: "spring" as const, stiffness: 300, damping: 18 };
 
 export function ShoeGrid({ shoes }: ShoeGridProps) {
+  const isDesktop = useIsDesktop();
+  const { t } = useLocale();
   const [focusedShoe, setFocusedShoe] = useState<ShoeWithSizes | null>(null);
   const [heroVariant, setHeroVariant] = useState<ImageVariant>("worn");
 
@@ -40,8 +44,9 @@ export function ShoeGrid({ shoes }: ShoeGridProps) {
     setHeroVariant("worn");
   }, []);
 
+  /* Keyboard navigation — desktop only */
   useEffect(() => {
-    if (!focusedShoe) return;
+    if (!focusedShoe || !isDesktop) return;
 
     const onKeyDown = (e: KeyboardEvent) => {
       const idx = shoes.findIndex((s) => s.id === focusedShoe.id);
@@ -82,11 +87,103 @@ export function ShoeGrid({ shoes }: ShoeGridProps) {
 
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [focusedShoe, heroVariant, shoes, handleClose]);
+  }, [focusedShoe, heroVariant, shoes, handleClose, isDesktop]);
 
+  /* ═══════════════════════════════════════════════
+     MOBILE
+     ═══════════════════════════════════════════════ */
+  if (!isDesktop) {
+    /* ── Mobile Grid ── */
+    if (!focusedShoe) {
+      return (
+        <div className="mx-auto h-full max-w-7xl px-3 py-3">
+          <div className="grid h-full auto-rows-fr grid-cols-2 gap-3">
+            {shoes.map((shoe) => (
+              <button
+                key={shoe.id}
+                onClick={() => handleShoeClick(shoe)}
+                className="group relative cursor-pointer overflow-hidden rounded-lg bg-muted"
+              >
+                <Image
+                  src={assetUrl(`item-${shoe.item_number}-main.webp`)}
+                  alt={shoe.name}
+                  fill
+                  className="object-cover"
+                  sizes="50vw"
+                  priority={shoe.item_number <= 4}
+                />
+                <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 to-transparent p-2.5">
+                  <p className="text-xs font-medium text-white">{shoe.name}</p>
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+      );
+    }
+
+    /* ── Mobile Detail ── */
+    return (
+      <div className="flex h-full flex-col bg-black text-white">
+        {/* Variant images scroll + shoe selector — 2 columns */}
+        <div className="flex min-h-0 flex-1 gap-2 px-3">
+          {/* All 4 variant images — vertical scroll, no gap */}
+          <div className="flex-1 overflow-y-auto overscroll-contain scrollbar-thin">
+            {IMAGE_VARIANTS.map((variant) => (
+              <div
+                key={variant}
+                className="relative aspect-video w-full overflow-hidden"
+              >
+                <Image
+                  src={assetUrl(`item-${focusedShoe.item_number}-${variant}.png`)}
+                  alt={`${focusedShoe.name} - ${VARIANT_LABELS[variant]}`}
+                  fill
+                  className="object-cover"
+                  sizes="75vw"
+                />
+              </div>
+            ))}
+          </div>
+
+          {/* Shoe thumbnails column */}
+          <div className="flex w-16 shrink-0 flex-col justify-center gap-2 py-2 md:w-20">
+            {shoes.map((shoe) => (
+              <button
+                key={shoe.id}
+                onClick={() => handleShoeClick(shoe)}
+                className={`relative aspect-square overflow-hidden rounded-md transition-opacity ${
+                  focusedShoe.id === shoe.id
+                    ? "ring-2 ring-white"
+                    : "opacity-50 hover:opacity-100"
+                }`}
+              >
+                <Image
+                  src={assetUrl(`item-${shoe.item_number}-main.webp`)}
+                  alt={shoe.name}
+                  fill
+                  className="object-cover"
+                  sizes="64px"
+                />
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Bottom: name + sizes + order — full viewport width */}
+        <div className="shrink-0 space-y-1.5 border-t border-white/10 px-4 py-2">
+          <h2 className="text-sm font-bold py-2">{focusedShoe.name}</h2>
+          <OrderForm key={focusedShoe.id} shoe={focusedShoe} mobile />
+        </div>
+      </div>
+    );
+  }
+
+  /* ═══════════════════════════════════════════════
+     DESKTOP (unchanged)
+     ═══════════════════════════════════════════════ */
   return (
     <LayoutGroup>
-      {/* Back button — fixed to viewport top-left, outside content padding */}
+      {/* Back button — fixed to viewport top-left */}
       <AnimatePresence>
         {focusedShoe && (
           <motion.button
@@ -96,9 +193,10 @@ export function ShoeGrid({ shoes }: ShoeGridProps) {
             transition={{ duration: 0.2 }}
             onClick={handleClose}
             className="fixed left-8 top-[7rem] z-30 flex items-center gap-2 text-xs font-bold uppercase tracking-widest transition-colors hover:text-foreground"
+            dir="ltr"
           >
             <FaArrowLeftLong className="h-4 w-6" />
-            Back
+            <span>{t("detail.back")}</span>
           </motion.button>
         )}
       </AnimatePresence>
@@ -177,7 +275,7 @@ export function ShoeGrid({ shoes }: ShoeGridProps) {
                       <h2 className="text-lg font-bold leading-tight text-white">
                         {focusedShoe.name}
                       </h2>
-                      <OrderForm shoe={focusedShoe} />
+                      <OrderForm key={focusedShoe.id} shoe={focusedShoe} />
                     </div>
                   </div>
               </motion.div>
@@ -217,7 +315,7 @@ export function ShoeGrid({ shoes }: ShoeGridProps) {
                   alt={shoe.name}
                   fill
                   className={`object-cover ${!focusedShoe ? "transition-transform duration-300 group-hover:scale-105" : ""}`}
-                  sizes={focusedShoe ? "96px" : "(max-width: 768px) 33vw, 300px"}
+                  sizes={focusedShoe ? "96px" : "300px"}
                   priority={shoe.item_number <= 3}
                 />
 
@@ -239,8 +337,6 @@ export function ShoeGrid({ shoes }: ShoeGridProps) {
                 </AnimatePresence>
               </motion.button>
             ))}
-
-
           </motion.div>
         </motion.div>
       </div>
