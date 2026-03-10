@@ -26,7 +26,8 @@ const SPRING = { type: "spring" as const, stiffness: 300, damping: 18 };
 
 export function ShoeGrid({ shoes }: ShoeGridProps) {
   const isDesktop = useIsDesktop();
-  const { t } = useLocale();
+  const { t, dir } = useLocale();
+  const isRtl = dir === "rtl";
   const [focusedShoe, setFocusedShoe] = useState<ShoeWithSizes | null>(null);
   const [heroVariant, setHeroVariant] = useState<ImageVariant>("worn");
 
@@ -124,7 +125,7 @@ export function ShoeGrid({ shoes }: ShoeGridProps) {
 
     /* ── Mobile Detail ── */
     return (
-      <div className="flex h-full flex-col bg-black text-white">
+      <div className="flex h-full flex-col bg-black text-white" dir="ltr">
         {/* Variant images scroll + shoe selector — 2 columns */}
         <div className="flex min-h-0 flex-1 gap-2 px-3">
           {/* All 4 variant images — vertical scroll, no gap */}
@@ -170,7 +171,7 @@ export function ShoeGrid({ shoes }: ShoeGridProps) {
         </div>
 
         {/* Bottom: name + sizes + order — full viewport width */}
-        <div className="shrink-0 space-y-1.5 border-t border-white/10 px-4 py-3">
+        <div className="shrink-0 space-y-1.5 border-t border-white/10 px-4 py-3 pb-6">
           <h2 className="text-sm font-bold py-2">{focusedShoe.name}</h2>
           <OrderForm key={focusedShoe.id} shoe={focusedShoe} mobile />
         </div>
@@ -205,6 +206,7 @@ export function ShoeGrid({ shoes }: ShoeGridProps) {
 
         <motion.div
           layout
+          dir="ltr"
           className={focusedShoe ? "flex h-full gap-4" : "h-full"}
           transition={SPRING}
         >
@@ -243,8 +245,17 @@ export function ShoeGrid({ shoes }: ShoeGridProps) {
                     </motion.div>
                   </AnimatePresence>
 
-                  {/* Bottom bar — thumbnails (left) + details (right) */}
-                  <div className="absolute inset-x-0 bottom-0 z-10 flex items-end justify-between bg-gradient-to-t from-black/50 to-transparent px-4 py-3">
+                  {/* Bottom bar — thumbnails + details */}
+                  {/* dir="ltr" prevents inherited RTL from flipping flex-row-reverse */}
+                  <div dir="ltr" className="absolute inset-x-0 bottom-0 z-10 flex flex-row-reverse items-end justify-between bg-gradient-to-t from-black/50 to-transparent px-4 py-3">
+                    {/* Name + sizes + order */}
+                    <div className="flex items-center gap-3">
+                      <h2 className="text-lg font-bold leading-tight text-white">
+                        {focusedShoe.name}
+                      </h2>
+                      <OrderForm key={focusedShoe.id} shoe={focusedShoe} />
+                    </div>
+
                     {/* Variant thumbnails */}
                     <div className="flex gap-2">
                       {IMAGE_VARIANTS.map((variant) => (
@@ -268,14 +279,6 @@ export function ShoeGrid({ shoes }: ShoeGridProps) {
                           />
                         </button>
                       ))}
-                    </div>
-
-                    {/* Name + sizes + order */}
-                    <div className="flex items-center gap-3">
-                      <h2 className="text-lg font-bold leading-tight text-white">
-                        {focusedShoe.name}
-                      </h2>
-                      <OrderForm key={focusedShoe.id} shoe={focusedShoe} />
                     </div>
                   </div>
               </motion.div>

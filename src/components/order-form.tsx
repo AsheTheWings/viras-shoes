@@ -154,8 +154,8 @@ export function OrderForm({ shoe, mobile }: OrderFormProps) {
               disabled={!selectedSize}
               className={
                 mobile
-                  ? `h-9 w-full rounded text-[10px] font-semibold transition-colors ${selectedSize ? "bg-white text-black hover:bg-white/90" : ""}`
-                  : "h-9 rounded-md px-6 text-xs font-semibold"
+                  ? `h-10 w-full rounded text-sm font-semibold transition-colors ${selectedSize ? "bg-white text-black hover:bg-white/90" : ""}`
+                  : "h-10 rounded-md px-6 text-md font-semibold"
               }
             />
           }
