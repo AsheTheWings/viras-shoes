@@ -170,7 +170,7 @@ export function ShoeGrid({ shoes }: ShoeGridProps) {
         </div>
 
         {/* Bottom: name + sizes + order — full viewport width */}
-        <div className="shrink-0 space-y-1.5 border-t border-white/10 px-4 py-2">
+        <div className="shrink-0 space-y-1.5 border-t border-white/10 px-4 py-3">
           <h2 className="text-sm font-bold py-2">{focusedShoe.name}</h2>
           <OrderForm key={focusedShoe.id} shoe={focusedShoe} mobile />
         </div>

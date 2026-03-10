@@ -1,24 +1,20 @@
 "use client";
 
 import { useLocale } from "@/lib/locale-context";
-import type { Locale } from "@/lib/i18n";
 
-interface TickerProps {
-  initialLocale?: Locale;
+interface TickerClientProps {
+  initialIsRtl: boolean;
 }
 
-export function Ticker({ initialLocale }: TickerProps) {
-  const { t, dir, locale } = useLocale();
-  // Use initialLocale for server-side consistency, fallback to client locale
-  const currentLocale = initialLocale || locale;
-  const isRtl = dir === "rtl";
+export function TickerClient({ initialIsRtl }: TickerClientProps) {
+  const { t } = useLocale();
 
   return (
-    <div className="overflow-hidden bg-[#7B3F1E] py-1.5">
+    <div className="overflow-hidden bg-[#7B3F1E] py-1.5" dir="ltr">
       <div
         className="flex w-max whitespace-nowrap text-[10px] font-medium uppercase tracking-widest text-[#F5D9C0] sm:text-xs"
         style={{
-          animationName: isRtl ? "marquee-rtl" : "marquee",
+          animationName: "marquee",
           animationDuration: "var(--marquee-duration)",
           animationTimingFunction: "linear",
           animationIterationCount: "infinite",

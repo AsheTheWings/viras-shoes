@@ -132,18 +132,25 @@
 }
 
 @keyframes marquee {
-  from { transform: translateX(0); }
-  to   { transform: translateX(-50%); }
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+@keyframes marquee-rtl {
+  0% { transform: translateX(-50%); }
+  100% { transform: translateX(0); }
 }
 
 :root {
-  --marquee-duration: 120s;          /* mobile */
+  --marquee-duration: 120s;
 }
+
 @media (min-width: 768px) {
-  :root { --marquee-duration: 80s; } /* md */
+  :root { --marquee-duration: 80s; }
 }
+
 @media (min-width: 1024px) {
-  :root { --marquee-duration: 60s; } /* lg+ */
+  :root { --marquee-duration: 60s; }
 }
 
 @keyframes order-pulse {
