@@ -51,14 +51,14 @@ export default async function RootLayout({
               </span>
               <span className="flex items-center gap-1" dir="ltr">
                 <Phone className="h-3 w-3" />
-                +212 663 742 079
+                +212 709 722 077
               </span>
             </div>
             {/* Desktop: horizontal row */}
             <div className="hidden items-center gap-5 text-sm text-white/90 lg:flex">
               <span className="flex items-center gap-1.5" dir="ltr">
                 <Phone className="h-3.5 w-3.5" />
-                +212 663 742 079
+                +212 709 722 077
               </span>
               <span className="flex items-center gap-1.5">
                 <Mail className="h-3.5 w-3.5" />
