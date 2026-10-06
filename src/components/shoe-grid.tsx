@@ -5,8 +5,7 @@ import Image from "next/image";
 import { motion, AnimatePresence, LayoutGroup } from "motion/react";
 import { FaArrowLeftLong } from "react-icons/fa6";
 import { assetUrl } from "@/lib/supabase";
-import type { ShoeWithSizes, ImageVariant } from "@/lib/types";
-import { IMAGE_VARIANTS } from "@/lib/types";
+import type { ShoeWithSizes } from "@/lib/types";
 import { OrderForm } from "./order-form";
 import { useIsDesktop } from "@/lib/hooks";
 import { useLocale } from "@/lib/locale-context";
@@ -15,34 +14,35 @@ interface ShoeGridProps {
   shoes: ShoeWithSizes[];
 }
 
-const VARIANT_LABELS: Record<ImageVariant, string> = {
-  main: "Front",
-  standard: "Side",
-  worn: "Worn",
-  top: "Top",
-};
-
 const SPRING = { type: "spring" as const, stiffness: 300, damping: 18 };
+
+function CoverPlaceholder({ name }: { name: string }) {
+  return (
+    <div className="absolute inset-0 flex items-center justify-center bg-neutral-800 p-3">
+      <span className="text-center text-xs font-medium text-neutral-400">{name}</span>
+    </div>
+  );
+}
 
 export function ShoeGrid({ shoes }: ShoeGridProps) {
   const isDesktop = useIsDesktop();
   const { t, dir } = useLocale();
   const isRtl = dir === "rtl";
   const [focusedShoe, setFocusedShoe] = useState<ShoeWithSizes | null>(null);
-  const [heroVariant, setHeroVariant] = useState<ImageVariant>("worn");
+  const [heroIdx, setHeroIdx] = useState(0);
 
   const handleShoeClick = useCallback(
     (shoe: ShoeWithSizes) => {
       if (focusedShoe?.id === shoe.id) return;
       setFocusedShoe(shoe);
-      setHeroVariant("worn");
+      setHeroIdx(0);
     },
     [focusedShoe],
   );
 
   const handleClose = useCallback(() => {
     setFocusedShoe(null);
-    setHeroVariant("worn");
+    setHeroIdx(0);
   }, []);
 
   /* Keyboard navigation — desktop only */
@@ -51,33 +51,31 @@ export function ShoeGrid({ shoes }: ShoeGridProps) {
 
     const onKeyDown = (e: KeyboardEvent) => {
       const idx = shoes.findIndex((s) => s.id === focusedShoe.id);
-      const vIdx = IMAGE_VARIANTS.indexOf(heroVariant);
+      const photoCount = focusedShoe.images.length;
 
       switch (e.key) {
         case "ArrowUp": {
           e.preventDefault();
           const prev = shoes[(idx - 1 + shoes.length) % shoes.length];
           setFocusedShoe(prev);
-          setHeroVariant("worn");
+          setHeroIdx(0);
           break;
         }
         case "ArrowDown": {
           e.preventDefault();
           const next = shoes[(idx + 1) % shoes.length];
           setFocusedShoe(next);
-          setHeroVariant("worn");
+          setHeroIdx(0);
           break;
         }
         case "ArrowLeft": {
           e.preventDefault();
-          setHeroVariant(
-            IMAGE_VARIANTS[(vIdx - 1 + IMAGE_VARIANTS.length) % IMAGE_VARIANTS.length],
-          );
+          if (photoCount > 0) setHeroIdx((i) => (i - 1 + photoCount) % photoCount);
           break;
         }
         case "ArrowRight": {
           e.preventDefault();
-          setHeroVariant(IMAGE_VARIANTS[(vIdx + 1) % IMAGE_VARIANTS.length]);
+          if (photoCount > 0) setHeroIdx((i) => (i + 1) % photoCount);
           break;
         }
         case "Escape":
@@ -88,7 +86,7 @@ export function ShoeGrid({ shoes }: ShoeGridProps) {
 
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [focusedShoe, heroVariant, shoes, handleClose, isDesktop]);
+  }, [focusedShoe, shoes, handleClose, isDesktop]);
 
   /* ═══════════════════════════════════════════════
      MOBILE
@@ -105,14 +103,18 @@ export function ShoeGrid({ shoes }: ShoeGridProps) {
                 onClick={() => handleShoeClick(shoe)}
                 className="group relative cursor-pointer overflow-hidden rounded-lg bg-muted"
               >
-                <Image
-                  src={assetUrl(`item-${shoe.item_number}-main.webp`)}
-                  alt={shoe.name}
-                  fill
-                  className="object-cover"
-                  sizes="50vw"
-                  priority={shoe.item_number <= 4}
-                />
+                {shoe.images[0] ? (
+                  <Image
+                    src={assetUrl(shoe.images[0])}
+                    alt={shoe.name}
+                    fill
+                    className="object-cover"
+                    sizes="50vw"
+                    priority={shoe.item_number <= 4}
+                  />
+                ) : (
+                  <CoverPlaceholder name={shoe.name} />
+                )}
                 <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 to-transparent p-2.5">
                   <p className="text-xs font-medium text-white">{shoe.name}</p>
                 </div>
@@ -125,19 +127,24 @@ export function ShoeGrid({ shoes }: ShoeGridProps) {
 
     /* ── Mobile Detail ── */
     return (
-      <div className="flex h-full flex-col bg-black text-white" dir="ltr">
-        {/* Variant images scroll + shoe selector — 2 columns */}
+    <div className="flex h-full flex-col bg-black text-white" dir="ltr">
+        {/* Photo scroll + shoe selector — 2 columns */}
         <div className="flex min-h-0 flex-1 gap-2 px-3">
-          {/* All 4 variant images — vertical scroll, no gap */}
+          {/* All photos — vertical scroll, no gap */}
           <div className="flex-1 overflow-y-auto overscroll-contain scrollbar-thin">
-            {IMAGE_VARIANTS.map((variant) => (
+            {focusedShoe.images.length === 0 ? (
+              <div className="flex aspect-video w-full items-center justify-center bg-neutral-900 p-4">
+                <span className="text-center text-sm text-neutral-400">{focusedShoe.name}</span>
+              </div>
+            ) : null}
+            {focusedShoe.images.map((filename, i) => (
               <div
-                key={variant}
+                key={filename}
                 className="relative aspect-video w-full overflow-hidden"
               >
                 <Image
-                  src={assetUrl(`item-${focusedShoe.item_number}-${variant}.png`)}
-                  alt={`${focusedShoe.name} - ${VARIANT_LABELS[variant]}`}
+                  src={assetUrl(filename)}
+                  alt={`${focusedShoe.name} ${i + 1}`}
                   fill
                   className="object-cover"
                   sizes="75vw"
@@ -158,13 +165,17 @@ export function ShoeGrid({ shoes }: ShoeGridProps) {
                     : "opacity-50 hover:opacity-100"
                 }`}
               >
-                <Image
-                  src={assetUrl(`item-${shoe.item_number}-main.webp`)}
-                  alt={shoe.name}
-                  fill
-                  className="object-cover"
-                  sizes="64px"
-                />
+                {shoe.images[0] ? (
+                  <Image
+                    src={assetUrl(shoe.images[0])}
+                    alt={shoe.name}
+                    fill
+                    className="object-cover"
+                    sizes="64px"
+                  />
+                ) : (
+                  <CoverPlaceholder name={shoe.name} />
+                )}
               </button>
             ))}
           </div>
@@ -225,23 +236,27 @@ export function ShoeGrid({ shoes }: ShoeGridProps) {
                   {/* Hero image */}
                   <AnimatePresence mode="wait">
                     <motion.div
-                      key={heroVariant}
+                      key={focusedShoe.images[heroIdx] ?? "empty"}
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
                       transition={{ duration: 0.2 }}
                       className="absolute inset-0"
                     >
-                      <Image
-                        src={assetUrl(
-                          `item-${focusedShoe.item_number}-${heroVariant}.png`,
-                        )}
-                        alt={`${focusedShoe.name} - ${VARIANT_LABELS[heroVariant]}`}
-                        fill
-                        className="object-contain"
-                        sizes="80vw"
-                        priority
-                      />
+                      {focusedShoe.images[heroIdx] ? (
+                        <Image
+                          src={assetUrl(focusedShoe.images[heroIdx])}
+                          alt={`${focusedShoe.name} ${heroIdx + 1}`}
+                          fill
+                          className="object-contain"
+                          sizes="80vw"
+                          priority
+                        />
+                      ) : (
+                        <div className="absolute inset-0 flex items-center justify-center bg-neutral-900">
+                          <span className="text-sm text-neutral-400">{focusedShoe.name}</span>
+                        </div>
+                      )}
                     </motion.div>
                   </AnimatePresence>
 
@@ -256,23 +271,21 @@ export function ShoeGrid({ shoes }: ShoeGridProps) {
                       <OrderForm key={focusedShoe.id} shoe={focusedShoe} />
                     </div>
 
-                    {/* Variant thumbnails */}
+                    {/* Photo thumbnails */}
                     <div className="flex gap-2">
-                      {IMAGE_VARIANTS.map((variant) => (
+                      {focusedShoe.images.map((filename, i) => (
                         <button
-                          key={variant}
-                          onClick={() => setHeroVariant(variant)}
+                          key={filename}
+                          onClick={() => setHeroIdx(i)}
                           className={`relative h-12 w-12 overflow-hidden rounded-md border-2 transition-all sm:h-14 sm:w-14 ${
-                            heroVariant === variant
+                            heroIdx === i
                               ? "border-white ring-2 ring-white/30"
                               : "border-transparent opacity-70 hover:opacity-100"
                           }`}
                         >
                           <Image
-                            src={assetUrl(
-                              `item-${focusedShoe.item_number}-${variant}.webp`,
-                            )}
-                            alt={VARIANT_LABELS[variant]}
+                            src={assetUrl(filename)}
+                            alt={`${focusedShoe.name} ${i + 1}`}
                             fill
                             className="object-cover"
                             sizes="56px"
@@ -313,14 +326,18 @@ export function ShoeGrid({ shoes }: ShoeGridProps) {
                 whileTap={!focusedShoe ? { scale: 0.98 } : undefined}
                 transition={SPRING}
               >
-                <Image
-                  src={assetUrl(`item-${shoe.item_number}-main.webp`)}
-                  alt={shoe.name}
-                  fill
-                  className={`object-cover ${!focusedShoe ? "transition-transform duration-300 group-hover:scale-105" : ""}`}
-                  sizes={focusedShoe ? "96px" : "300px"}
-                  priority={shoe.item_number <= 3}
-                />
+                {shoe.images[0] ? (
+                  <Image
+                    src={assetUrl(shoe.images[0])}
+                    alt={shoe.name}
+                    fill
+                    className={`object-cover ${!focusedShoe ? "transition-transform duration-300 group-hover:scale-105" : ""}`}
+                    sizes={focusedShoe ? "96px" : "300px"}
+                    priority={shoe.item_number <= 3}
+                  />
+                ) : (
+                  <CoverPlaceholder name={shoe.name} />
+                )}
 
                 {/* Name/price overlay — fades out smoothly */}
                 <AnimatePresence>
