@@ -1,23 +1,33 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { LockKeyhole } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { assetUrl } from "@/lib/supabase";
 import { isRtl, t, type Locale } from "@/lib/i18n";
 import { loginAdmin } from "./actions";
 
 const SIGNIN_VIDEO = "/admin-signin.mp4";
 
+function playQuietly(video: HTMLVideoElement) {
+  // The muted *property* (not the JSX attribute) is what unlocks autoplay.
+  video.muted = true;
+  video.play().catch(() => {});
+}
+
 export function AdminLoginForm({ configured, locale }: { configured: boolean; locale: Locale }) {
   const router = useRouter();
   const dir = isRtl(locale) ? "rtl" : "ltr";
+  const videoRef = useRef<HTMLVideoElement>(null);
   const [code, setCode] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
+
+  useEffect(() => {
+    if (videoRef.current) playQuietly(videoRef.current);
+  }, []);
 
   if (!configured) {
     return (
@@ -48,13 +58,20 @@ export function AdminLoginForm({ configured, locale }: { configured: boolean; lo
     <div dir="ltr" className="flex min-h-dvh w-full bg-neutral-950 text-white">
       <div className="relative hidden w-[36vw] shrink-0 md:block">
         <video
+          ref={videoRef}
           src={SIGNIN_VIDEO}
-          poster={assetUrl("item-1-main.webp")}
           autoPlay
           muted
           loop
           playsInline
           preload="auto"
+          disablePictureInPicture
+          onEnded={(e) => {
+            // Fallback restart if an engine ever drops the loop attribute.
+            const v = e.currentTarget;
+            v.currentTime = 0;
+            playQuietly(v);
+          }}
           className="absolute inset-0 h-full w-full object-cover"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black via-black/30 to-black/10" />
