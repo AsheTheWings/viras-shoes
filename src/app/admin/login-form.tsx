@@ -10,7 +10,7 @@ import { assetUrl } from "@/lib/supabase";
 import { isRtl, t, type Locale } from "@/lib/i18n";
 import { loginAdmin } from "./actions";
 
-const SIGNIN_VIDEO = "WHGCfO4iG7Il2sodavNFC_output.mp4";
+const SIGNIN_VIDEO = "/admin-signin.mp4";
 
 export function AdminLoginForm({ configured, locale }: { configured: boolean; locale: Locale }) {
   const router = useRouter();
@@ -48,12 +48,13 @@ export function AdminLoginForm({ configured, locale }: { configured: boolean; lo
     <div dir="ltr" className="flex min-h-dvh w-full bg-neutral-950 text-white">
       <div className="relative hidden w-[36vw] shrink-0 md:block">
         <video
-          src={assetUrl(SIGNIN_VIDEO)}
+          src={SIGNIN_VIDEO}
           poster={assetUrl("item-1-main.webp")}
           autoPlay
           muted
           loop
           playsInline
+          preload="auto"
           className="absolute inset-0 h-full w-full object-cover"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black via-black/30 to-black/10" />
