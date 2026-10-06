@@ -43,6 +43,52 @@ export const translations = {
     en: "New Collection • October 2026 • Handpicked Styles •",
     fr: "Nouvelle Collection • Octobre 2026 • Styles Triés •",
   },
+  // Admin sign in
+  "admin.signin.badge": {
+    ar: "خاص",
+    en: "Private",
+    fr: "Privé",
+  },
+  "admin.signin.title": {
+    ar: "مرحباً بعودتك",
+    en: "Welcome back",
+    fr: "Bon retour",
+  },
+  "admin.signin.subtitle": {
+    ar: "أدخل رمز الإدارة لفتح لوحة التحكم.",
+    en: "Enter your admin code to open the back office.",
+    fr: "Saisissez votre code admin pour ouvrir le back-office.",
+  },
+  "admin.signin.code": {
+    ar: "رمز الإدارة",
+    en: "Admin code",
+    fr: "Code admin",
+  },
+  "admin.signin.submit": {
+    ar: "دخول",
+    en: "Unlock",
+    fr: "Entrer",
+  },
+  "admin.signin.checking": {
+    ar: "جارٍ التحقق…",
+    en: "Checking…",
+    fr: "Vérification…",
+  },
+  "admin.signin.wrong": {
+    ar: "الرمز غير صحيح",
+    en: "Wrong code",
+    fr: "Code incorrect",
+  },
+  "admin.signin.locked": {
+    ar: "محاولات كثيرة. حاول مرة أخرى لاحقاً.",
+    en: "Too many attempts. Try again later",
+    fr: "Trop de tentatives. Réessayez plus tard.",
+  },
+  "admin.signin.unconfigured": {
+    ar: "لم يتم إعداد تسجيل الدخول على هذا الخادم بعد.",
+    en: "Sign in is not set up on this server yet.",
+    fr: "La connexion n'est pas encore configurée sur ce serveur.",
+  },
   // Order form
   "order.now": {
     ar: "اطلب الآن",

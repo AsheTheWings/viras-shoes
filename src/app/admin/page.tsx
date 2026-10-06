@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import { createClient } from "@supabase/supabase-js";
 import { ADMIN_COOKIE, getAdminCode, verifySession } from "@/lib/admin-auth";
+import { DEFAULT_LOCALE, LOCALES, type Locale } from "@/lib/i18n";
 import type { Shoe, ShoeSize } from "@/lib/types";
 import { AdminLoginForm } from "./login-form";
 import { AdminDashboard, type AdminOrder } from "./dashboard";
@@ -22,14 +23,14 @@ export default async function AdminPage() {
   const signedIn = verifySession(jar.get(ADMIN_COOKIE)?.value);
 
   if (!signedIn) {
-    return shell(
-      <div className="mx-auto max-w-sm rounded-lg border border-neutral-200 bg-white p-6">
-        <h1 className="text-lg font-semibold">Admin sign in</h1>
-        <p className="mt-1 text-sm text-neutral-500">Enter the admin code to continue.</p>
-        <div className="mt-4">
-          <AdminLoginForm configured={!!getAdminCode()} />
-        </div>
-      </div>,
+    const rawLocale = jar.get("viras_locale")?.value;
+    const locale: Locale = (LOCALES as readonly string[]).includes(rawLocale ?? "")
+      ? (rawLocale as Locale)
+      : DEFAULT_LOCALE;
+    return (
+      <main className="flex min-h-[70vh] items-center justify-center px-4 py-10">
+        <AdminLoginForm configured={!!getAdminCode()} locale={locale} />
+      </main>
     );
   }
 

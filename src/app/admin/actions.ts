@@ -41,17 +41,17 @@ async function assertAdmin(): Promise<string | null> {
 }
 
 export async function loginAdmin(code: string): Promise<AdminResult> {
-  if (!getAdminCode()) return fail("Admin login is not configured on this server");
+  if (!getAdminCode()) return fail("unconfigured");
   const ip = await callerIp();
   const now = Date.now();
   const rec = attempts.get(ip);
   if (rec && rec.resetAt > now && rec.fails >= MAX_LOGIN_FAILS) {
-    return fail("Too many attempts. Try again later");
+    return fail("locked");
   }
   if (!verifyCode(code)) {
     const next = rec && rec.resetAt > now ? rec.fails + 1 : 1;
     attempts.set(ip, { fails: next, resetAt: now + LOGIN_WINDOW_MS });
-    return fail("Wrong code");
+    return fail("wrong");
   }
   attempts.delete(ip);
   const jar = await cookies();

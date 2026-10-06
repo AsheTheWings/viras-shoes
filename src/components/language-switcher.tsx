@@ -5,6 +5,7 @@ import { Globe } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useLocale } from "@/lib/locale-context";
 import { LOCALES, LOCALE_LABELS, pathForLocale, type Locale } from "@/lib/i18n";
+import { rememberLocale } from "@/lib/locale-cookie";
 
 export function LanguageSwitcher() {
   const { locale } = useLocale();
@@ -25,6 +26,7 @@ export function LanguageSwitcher() {
   const switchLocale = (target: Locale) => {
     setOpen(false);
     if (target === locale) return;
+    void rememberLocale(target);
     router.push(pathForLocale(target));
   };
 
