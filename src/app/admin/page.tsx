@@ -1,5 +1,6 @@
 import { cookies } from "next/headers";
 import { createClient } from "@supabase/supabase-js";
+import type { Metadata } from "next";
 import { ADMIN_COOKIE, getAdminCode, verifySession } from "@/lib/admin-auth";
 import { DEFAULT_LOCALE, LOCALES, type Locale } from "@/lib/i18n";
 import type { Shoe, ShoeSize } from "@/lib/types";
@@ -7,13 +8,20 @@ import { AdminLoginForm } from "./login-form";
 import { AdminDashboard, type AdminOrder } from "./dashboard";
 import { LogoutButton } from "./logout-button";
 
+export const metadata: Metadata = {
+  title: "Admin · Viras Shoes",
+  robots: { index: false, follow: false },
+};
+
 function shell(content: React.ReactNode) {
   return (
-    <main className="mx-auto w-full max-w-6xl px-4 py-10">
-      <p className="text-xs font-semibold uppercase tracking-widest text-neutral-500">
-        Viras Shoes · Admin
-      </p>
-      <div className="mt-4">{content}</div>
+    <main className="h-dvh overflow-y-auto bg-neutral-100">
+      <div className="mx-auto w-full max-w-6xl px-4 py-10">
+        <p className="text-xs font-semibold uppercase tracking-widest text-neutral-500">
+          Viras Shoes · Admin
+        </p>
+        <div className="mt-4">{content}</div>
+      </div>
     </main>
   );
 }
@@ -28,7 +36,7 @@ export default async function AdminPage() {
       ? (rawLocale as Locale)
       : DEFAULT_LOCALE;
     return (
-      <main className="flex min-h-[70vh] items-center justify-center px-4 py-10">
+      <main className="flex h-dvh items-center justify-center overflow-y-auto bg-neutral-950 px-4 py-10">
         <AdminLoginForm configured={!!getAdminCode()} locale={locale} />
       </main>
     );
