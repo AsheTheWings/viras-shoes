@@ -15,6 +15,18 @@ export interface ShoeSize {
 
 export interface ShoeWithSizes extends Shoe {
   sizes: ShoeSize[];
-  /** Ordered photo filenames in the assets bucket (main photo first). */
-  images: string[];
+  /** Ordered product photos (main photo first). */
+  images: GalleryImage[];
+}
+
+/**
+ * One product photo. Bucket twins that differ only by extension
+ * (e.g. item-1-main.png + item-1-main.webp) collapse into a single
+ * entry: `file` is the lightweight display file, `heroFile` the
+ * full-quality file for large views.
+ */
+export interface GalleryImage {
+  stem: string;
+  file: string;
+  heroFile: string;
 }

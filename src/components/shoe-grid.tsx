@@ -103,9 +103,9 @@ export function ShoeGrid({ shoes }: ShoeGridProps) {
                 onClick={() => handleShoeClick(shoe)}
                 className="group relative cursor-pointer overflow-hidden rounded-lg bg-muted"
               >
-                {shoe.images[0] ? (
+                {shoe.images[0]?.file ? (
                   <Image
-                    src={assetUrl(shoe.images[0])}
+                    src={assetUrl(shoe.images[0].file)}
                     alt={shoe.name}
                     fill
                     className="object-cover"
@@ -137,13 +137,13 @@ export function ShoeGrid({ shoes }: ShoeGridProps) {
                 <span className="text-center text-sm text-neutral-400">{focusedShoe.name}</span>
               </div>
             ) : null}
-            {focusedShoe.images.map((filename, i) => (
+            {focusedShoe.images.map((image, i) => (
               <div
-                key={filename}
+                key={image.stem}
                 className="relative aspect-video w-full overflow-hidden"
               >
                 <Image
-                  src={assetUrl(filename)}
+                  src={assetUrl(image.heroFile)}
                   alt={`${focusedShoe.name} ${i + 1}`}
                   fill
                   className="object-cover"
@@ -165,9 +165,9 @@ export function ShoeGrid({ shoes }: ShoeGridProps) {
                     : "opacity-50 hover:opacity-100"
                 }`}
               >
-                {shoe.images[0] ? (
+                {shoe.images[0]?.file ? (
                   <Image
-                    src={assetUrl(shoe.images[0])}
+                    src={assetUrl(shoe.images[0].file)}
                     alt={shoe.name}
                     fill
                     className="object-cover"
@@ -236,16 +236,16 @@ export function ShoeGrid({ shoes }: ShoeGridProps) {
                   {/* Hero image */}
                   <AnimatePresence mode="wait">
                     <motion.div
-                      key={focusedShoe.images[heroIdx] ?? "empty"}
+                      key={focusedShoe.images[heroIdx]?.stem ?? "empty"}
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
                       transition={{ duration: 0.2 }}
                       className="absolute inset-0"
                     >
-                      {focusedShoe.images[heroIdx] ? (
+                      {focusedShoe.images[heroIdx]?.heroFile ? (
                         <Image
-                          src={assetUrl(focusedShoe.images[heroIdx])}
+                          src={assetUrl(focusedShoe.images[heroIdx].heroFile)}
                           alt={`${focusedShoe.name} ${heroIdx + 1}`}
                           fill
                           className="object-contain"
@@ -273,9 +273,9 @@ export function ShoeGrid({ shoes }: ShoeGridProps) {
 
                     {/* Photo thumbnails */}
                     <div className="flex gap-2">
-                      {focusedShoe.images.map((filename, i) => (
+                      {focusedShoe.images.map((image, i) => (
                         <button
-                          key={filename}
+                          key={image.stem}
                           onClick={() => setHeroIdx(i)}
                           className={`relative h-12 w-12 overflow-hidden rounded-md border-2 transition-all sm:h-14 sm:w-14 ${
                             heroIdx === i
@@ -284,7 +284,7 @@ export function ShoeGrid({ shoes }: ShoeGridProps) {
                           }`}
                         >
                           <Image
-                            src={assetUrl(filename)}
+                            src={assetUrl(image.file)}
                             alt={`${focusedShoe.name} ${i + 1}`}
                             fill
                             className="object-cover"
@@ -326,9 +326,9 @@ export function ShoeGrid({ shoes }: ShoeGridProps) {
                 whileTap={!focusedShoe ? { scale: 0.98 } : undefined}
                 transition={SPRING}
               >
-                {shoe.images[0] ? (
+                {shoe.images[0]?.file ? (
                   <Image
-                    src={assetUrl(shoe.images[0])}
+                    src={assetUrl(shoe.images[0].file)}
                     alt={shoe.name}
                     fill
                     className={`object-cover ${!focusedShoe ? "transition-transform duration-300 group-hover:scale-105" : ""}`}

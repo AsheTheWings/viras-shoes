@@ -25,7 +25,13 @@ function OrderRow({ order, shoeName, locale }: { order: AdminOrder; shoeName: st
   function run(action: Promise<{ ok: true } | { ok: false; error: string }>) {
     setError(null);
     start(async () => {
-      const res = await action;
+      let res: { ok: true } | { ok: false; error: string };
+      try {
+        res = await action;
+      } catch {
+        setError(t("admin.action.failed", locale));
+        return;
+      }
       if (res.ok) {
         setConfirming(false);
         router.refresh();

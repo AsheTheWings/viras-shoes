@@ -1,6 +1,6 @@
 import { supabase } from "./supabase";
 import { listShoeImagesByItem } from "./shoe-images";
-import type { ShoeWithSizes } from "./types";
+import type { GalleryImage, ShoeWithSizes } from "./types";
 
 export async function getShoes(): Promise<ShoeWithSizes[]> {
   const { data: shoes, error: shoesError } = await supabase
@@ -19,7 +19,7 @@ export async function getShoes(): Promise<ShoeWithSizes[]> {
 
   // Photos are a progressive enhancement: the catalog still renders
   // (with placeholders) when the service key or storage is unavailable.
-  let imagesByItem: Record<number, string[]> = {};
+  let imagesByItem: Record<number, GalleryImage[]> = {};
   try {
     imagesByItem = await listShoeImagesByItem();
   } catch {

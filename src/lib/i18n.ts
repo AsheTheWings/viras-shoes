@@ -190,6 +190,11 @@ export const translations = {
     en: "Sign out",
     fr: "Déconnexion",
   },
+  "admin.action.failed": {
+    ar: "تعذّر تنفيذ العملية. حاول مجدداً.",
+    en: "Something went wrong. Try again.",
+    fr: "Échec de l'opération. Réessayez.",
+  },
   "admin.notconfigured.title": {
     ar: "قاعدة بيانات الإدارة غير مهيأة",
     en: "Admin database is not configured",

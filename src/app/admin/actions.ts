@@ -261,10 +261,10 @@ export async function deleteShoeSize(sizeId: number): Promise<AdminResult> {
 
 const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
 
-function imageNameError(itemNumber: number, filename: string): string | null {
+function stemError(itemNumber: number, stem: string): string | null {
   if (!Number.isInteger(itemNumber) || itemNumber <= 0) return "Unknown shoe";
-  // Keys the file to this shoe's gallery and blocks path traversal.
-  const ok = new RegExp(`^item-${itemNumber}-[A-Za-z0-9-]+\\.(webp|png|jpe?g)$`).test(filename);
+  // Keys the photo to this shoe's gallery and blocks path traversal.
+  const ok = new RegExp(`^item-${itemNumber}-[A-Za-z0-9-]+$`).test(stem);
   return ok ? null : "Unknown image";
 }
 
@@ -311,16 +311,22 @@ export async function uploadShoeImages(
 
 export async function deleteShoeImage(
   itemNumber: number,
-  filename: string,
+  stem: string,
 ): Promise<AdminResult> {
   const denied = await assertAdmin();
   if (denied) return fail(denied);
-  const bad = imageNameError(itemNumber, filename);
+  const bad = stemError(itemNumber, stem);
   if (bad) return fail(bad);
   try {
-    const { error } = await adminDb()
-      .storage.from("assets")
-      .remove([filename]);
+    const bucket = adminDb().storage.from("assets");
+    // A photo is every twin sharing the stem; removing one entry removes all.
+    const { data, error: listError } = await bucket.list("", { limit: 1000 });
+    if (listError) throw listError;
+    const twins = (data ?? [])
+      .map((entry) => entry.name)
+      .filter((name) => name.startsWith(`${stem}.`));
+    if (twins.length === 0) return fail("Unknown image");
+    const { error } = await bucket.remove(twins);
     if (error) throw error;
     revalidatePath("/admin");
     return done();

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import type { Shoe, ShoeSize } from "@/lib/types";
+import type { GalleryImage, Shoe, ShoeSize } from "@/lib/types";
 import { t, type Locale } from "@/lib/i18n";
 import { AdminLocaleSwitcher } from "./admin-locale-switcher";
 import { LogoutButton } from "./logout-button";
@@ -26,7 +26,7 @@ interface DashboardProps {
   orders: AdminOrder[];
   shoes: Shoe[];
   sizes: ShoeSize[];
-  imagesByItem: Record<number, string[]>;
+  imagesByItem: Record<number, GalleryImage[]>;
   locale: Locale;
 }
 

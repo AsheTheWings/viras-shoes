@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, useTransition } from "react";
+import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { assetUrl } from "@/lib/supabase";
-import { type Shoe, type ShoeSize } from "@/lib/types";
+import { type GalleryImage, type Shoe, type ShoeSize } from "@/lib/types";
 import { t, type Locale } from "@/lib/i18n";
 import {
   addShoeSize,
@@ -22,14 +22,22 @@ import {
   type AdminResult,
 } from "./actions";
 
-function useAction() {
+function useAction(locale: Locale) {
   const router = useRouter();
   const [pending, start] = useTransition();
   const [error, setError] = useState<string | null>(null);
   function run(action: Promise<AdminResult>, onOk?: () => void) {
     setError(null);
     start(async () => {
-      const res = await action;
+      let res: AdminResult;
+      try {
+        res = await action;
+      } catch {
+        // Transport or server-crash failures reject instead of resolving:
+        // surface them instead of leaving the button silently dead.
+        setError(t("admin.action.failed", locale));
+        return;
+      }
       if (res.ok) {
         onOk?.();
         router.refresh();
@@ -43,28 +51,28 @@ function useAction() {
 
 function PhotoItem({
   itemNumber,
-  filename,
+  image,
   locale,
 }: {
   itemNumber: number;
-  filename: string;
+  image: GalleryImage;
   locale: Locale;
 }) {
-  const { pending, error, run } = useAction();
+  const { pending, error, run } = useAction(locale);
   const [confirming, setConfirming] = useState(false);
 
   return (
     <div className="flex items-center gap-3 rounded-md border border-neutral-200 p-2">
       <Image
-        src={assetUrl(filename)}
-        alt={filename}
+        src={assetUrl(image.file)}
+        alt={image.stem}
         width={64}
         height={64}
         className="h-16 w-16 rounded object-cover bg-neutral-100"
       />
       <div className="min-w-0 flex-1">
         <p className="truncate font-mono text-[11px] text-neutral-500">
-          {filename}
+          {image.file}
         </p>
         <div className="mt-1.5 flex flex-wrap items-center gap-2">
           {confirming ? (
@@ -73,7 +81,7 @@ function PhotoItem({
                 size="sm"
                 variant="destructive"
                 disabled={pending}
-                onClick={() => run(deleteShoeImage(itemNumber, filename))}
+                onClick={() => run(deleteShoeImage(itemNumber, image.stem))}
               >
                 {t("admin.orders.confirm", locale)}
               </Button>
@@ -99,12 +107,11 @@ function PhotosManager({
   locale,
 }: {
   itemNumber: number;
-  images: string[];
+  images: GalleryImage[];
   locale: Locale;
 }) {
-  const { pending, error, run } = useAction();
-  const inputRef = useRef<HTMLInputElement>(null);
-  const [picked, setPicked] = useState(0);
+  const { pending, error, run } = useAction(locale);
+  const [chosen, setChosen] = useState<File[]>([]);
   const [inputKey, setInputKey] = useState(0);
 
   return (
@@ -112,25 +119,22 @@ function PhotosManager({
       <div className="mt-2 flex flex-wrap items-center gap-2">
         <input
           key={inputKey}
-          ref={inputRef}
           type="file"
           accept="image/webp"
           multiple
           disabled={pending}
-          onChange={(e) => setPicked(e.target.files?.length ?? 0)}
+          onChange={(e) => setChosen(Array.from(e.target.files ?? []))}
           className="max-w-52 text-xs"
         />
         <Button
           size="sm"
           variant="outline"
-          disabled={pending || picked === 0}
+          disabled={pending || chosen.length === 0}
           onClick={() => {
-            const files = inputRef.current?.files;
-            if (!files || files.length === 0) return;
             const fd = new FormData();
-            for (const file of files) fd.append("images", file);
+            for (const file of chosen) fd.append("images", file);
             run(uploadShoeImages(itemNumber, fd), () => {
-              setPicked(0);
+              setChosen([]);
               setInputKey((k) => k + 1);
             });
           }}
@@ -138,13 +142,18 @@ function PhotosManager({
           {pending ? t("admin.shoes.uploading", locale) : t("admin.shoes.addPhotos", locale)}
         </Button>
       </div>
+      {chosen.length > 0 ? (
+        <p className="mt-1 truncate font-mono text-[11px] text-neutral-500">
+          {chosen.map((f) => f.name).join(", ")}
+        </p>
+      ) : null}
       {error ? <p className="mt-1 text-xs text-red-600">{error}</p> : null}
       {images.length === 0 ? (
         <p className="py-2 text-sm text-neutral-500">{t("admin.shoes.noPhotos", locale)}</p>
       ) : (
         <div className="mt-2 grid gap-2 md:grid-cols-2">
-          {images.map((filename) => (
-            <PhotoItem key={filename} itemNumber={itemNumber} filename={filename} locale={locale} />
+          {images.map((image) => (
+            <PhotoItem key={image.stem} itemNumber={itemNumber} image={image} locale={locale} />
           ))}
         </div>
       )}
@@ -153,7 +162,7 @@ function PhotosManager({
 }
 
 function SizeRow({ row, locale }: { row: ShoeSize; locale: Locale }) {
-  const { pending, error, run } = useAction();
+  const { pending, error, run } = useAction(locale);
   const [stock, setStock] = useState(String(row.stock));
   const [confirming, setConfirming] = useState(false);
 
@@ -203,10 +212,10 @@ function ShoeCard({
 }: {
   shoe: Shoe;
   sizes: ShoeSize[];
-  images: string[];
+  images: GalleryImage[];
   locale: Locale;
 }) {
-  const { pending, error, run } = useAction();
+  const { pending, error, run } = useAction(locale);
   const [name, setName] = useState(shoe.name);
   const [price, setPrice] = useState(String(shoe.price));
   const [description, setDescription] = useState(shoe.description ?? "");
@@ -305,7 +314,7 @@ function ShoeCard({
 }
 
 function AddShoeForm({ locale }: { locale: Locale }) {
-  const { pending, error, run } = useAction();
+  const { pending, error, run } = useAction(locale);
   const [open, setOpen] = useState(false);
   const [itemNumber, setItemNumber] = useState("");
   const [name, setName] = useState("");
@@ -373,7 +382,7 @@ export function ShoesSection({
 }: {
   shoes: Shoe[];
   sizes: ShoeSize[];
-  imagesByItem: Record<number, string[]>;
+  imagesByItem: Record<number, GalleryImage[]>;
   locale: Locale;
 }) {
   const byShoe = new Map<number, ShoeSize[]>();
