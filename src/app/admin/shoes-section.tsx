@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { assetUrl } from "@/lib/supabase";
-import { IMAGE_VARIANTS, type ImageVariant, type Shoe, type ShoeSize } from "@/lib/types";
+import { type Shoe, type ShoeSize } from "@/lib/types";
 import { t, type Locale } from "@/lib/i18n";
 import {
   addShoeSize,
@@ -18,22 +18,9 @@ import {
   deleteShoeSize,
   setSizeStock,
   updateShoe,
-  uploadShoeImage,
+  uploadShoeImages,
   type AdminResult,
 } from "./actions";
-
-function variantLabel(variant: ImageVariant, locale: Locale): string {
-  switch (variant) {
-    case "main":
-      return t("admin.shoes.variant.main", locale);
-    case "standard":
-      return t("admin.shoes.variant.standard", locale);
-    case "worn":
-      return t("admin.shoes.variant.worn", locale);
-    case "top":
-      return t("admin.shoes.variant.top", locale);
-  }
-}
 
 function useAction() {
   const router = useRouter();
@@ -54,65 +41,39 @@ function useAction() {
   return { pending, error, run };
 }
 
-function ImageManager({
+function PhotoItem({
   itemNumber,
-  variant,
+  filename,
   locale,
 }: {
   itemNumber: number;
-  variant: ImageVariant;
+  filename: string;
   locale: Locale;
 }) {
   const { pending, error, run } = useAction();
-  const [bump, setBump] = useState(0);
   const [confirming, setConfirming] = useState(false);
-  const [file, setFile] = useState<File | null>(null);
-  const src = `${assetUrl(`item-${itemNumber}-${variant}.webp`)}${bump ? `?v=${bump}` : ""}`;
 
   return (
     <div className="flex items-center gap-3 rounded-md border border-neutral-200 p-2">
-      <Image src={src} alt={variantLabel(variant, locale)} width={64} height={64} className="h-16 w-16 rounded object-cover bg-neutral-100" />
+      <Image
+        src={assetUrl(filename)}
+        alt={filename}
+        width={64}
+        height={64}
+        className="h-16 w-16 rounded object-cover bg-neutral-100"
+      />
       <div className="min-w-0 flex-1">
-        <p className="text-xs font-medium">{variantLabel(variant, locale)}</p>
         <p className="truncate font-mono text-[11px] text-neutral-500">
-          item-{itemNumber}-{variant}.webp
+          {filename}
         </p>
         <div className="mt-1.5 flex flex-wrap items-center gap-2">
-          <input
-            type="file"
-            accept="image/webp"
-            disabled={pending}
-            onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-            className="max-w-40 text-xs"
-          />
-          <Button
-            size="sm"
-            variant="outline"
-            disabled={pending || !file}
-            onClick={() => {
-              if (!file) return;
-              const fd = new FormData();
-              fd.set("image", file);
-              run(uploadShoeImage(itemNumber, variant, fd), () => {
-                setFile(null);
-                setBump((b) => b + 1);
-              });
-            }}
-          >
-            {t("admin.shoes.upload", locale)}
-          </Button>
           {confirming ? (
             <span className="inline-flex gap-1.5">
               <Button
                 size="sm"
                 variant="destructive"
                 disabled={pending}
-                onClick={() =>
-                  run(deleteShoeImage(itemNumber, variant), () => {
-                    setConfirming(false);
-                    setBump((b) => b + 1);
-                  })
-                }
+                onClick={() => run(deleteShoeImage(itemNumber, filename))}
               >
                 {t("admin.orders.confirm", locale)}
               </Button>
@@ -128,6 +89,65 @@ function ImageManager({
         </div>
         {error ? <p className="mt-1 text-xs text-red-600">{error}</p> : null}
       </div>
+    </div>
+  );
+}
+
+function PhotosManager({
+  itemNumber,
+  images,
+  locale,
+}: {
+  itemNumber: number;
+  images: string[];
+  locale: Locale;
+}) {
+  const { pending, error, run } = useAction();
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [picked, setPicked] = useState(0);
+  const [inputKey, setInputKey] = useState(0);
+
+  return (
+    <div>
+      <div className="mt-2 flex flex-wrap items-center gap-2">
+        <input
+          key={inputKey}
+          ref={inputRef}
+          type="file"
+          accept="image/webp"
+          multiple
+          disabled={pending}
+          onChange={(e) => setPicked(e.target.files?.length ?? 0)}
+          className="max-w-52 text-xs"
+        />
+        <Button
+          size="sm"
+          variant="outline"
+          disabled={pending || picked === 0}
+          onClick={() => {
+            const files = inputRef.current?.files;
+            if (!files || files.length === 0) return;
+            const fd = new FormData();
+            for (const file of files) fd.append("images", file);
+            run(uploadShoeImages(itemNumber, fd), () => {
+              setPicked(0);
+              setInputKey((k) => k + 1);
+            });
+          }}
+        >
+          {pending ? t("admin.shoes.uploading", locale) : t("admin.shoes.addPhotos", locale)}
+        </Button>
+      </div>
+      {error ? <p className="mt-1 text-xs text-red-600">{error}</p> : null}
+      {images.length === 0 ? (
+        <p className="py-2 text-sm text-neutral-500">{t("admin.shoes.noPhotos", locale)}</p>
+      ) : (
+        <div className="mt-2 grid gap-2 md:grid-cols-2">
+          {images.map((filename) => (
+            <PhotoItem key={filename} itemNumber={itemNumber} filename={filename} locale={locale} />
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -175,7 +195,17 @@ function SizeRow({ row, locale }: { row: ShoeSize; locale: Locale }) {
   );
 }
 
-function ShoeCard({ shoe, sizes, locale }: { shoe: Shoe; sizes: ShoeSize[]; locale: Locale }) {
+function ShoeCard({
+  shoe,
+  sizes,
+  images,
+  locale,
+}: {
+  shoe: Shoe;
+  sizes: ShoeSize[];
+  images: string[];
+  locale: Locale;
+}) {
   const { pending, error, run } = useAction();
   const [name, setName] = useState(shoe.name);
   const [price, setPrice] = useState(String(shoe.price));
@@ -268,12 +298,8 @@ function ShoeCard({ shoe, sizes, locale }: { shoe: Shoe; sizes: ShoeSize[]; loca
 
       <Separator className="my-4" />
 
-      <h3 className="text-sm font-semibold">{t("admin.shoes.images", locale)}</h3>
-      <div className="mt-2 grid gap-2 md:grid-cols-2">
-        {IMAGE_VARIANTS.map((v) => (
-          <ImageManager key={v} itemNumber={shoe.item_number} variant={v} locale={locale} />
-        ))}
-      </div>
+      <h3 className="text-sm font-semibold">{t("admin.shoes.photos", locale)}</h3>
+      <PhotosManager itemNumber={shoe.item_number} images={images} locale={locale} />
     </section>
   );
 }
@@ -339,7 +365,17 @@ function AddShoeForm({ locale }: { locale: Locale }) {
   );
 }
 
-export function ShoesSection({ shoes, sizes, locale }: { shoes: Shoe[]; sizes: ShoeSize[]; locale: Locale }) {
+export function ShoesSection({
+  shoes,
+  sizes,
+  imagesByItem,
+  locale,
+}: {
+  shoes: Shoe[];
+  sizes: ShoeSize[];
+  imagesByItem: Record<number, string[]>;
+  locale: Locale;
+}) {
   const byShoe = new Map<number, ShoeSize[]>();
   for (const s of sizes) {
     const list = byShoe.get(s.shoe_id) ?? [];
@@ -350,7 +386,13 @@ export function ShoesSection({ shoes, sizes, locale }: { shoes: Shoe[]; sizes: S
     <div className="space-y-4">
       <AddShoeForm locale={locale} />
       {shoes.map((shoe) => (
-        <ShoeCard key={shoe.id} shoe={shoe} sizes={byShoe.get(shoe.id) ?? []} locale={locale} />
+        <ShoeCard
+          key={shoe.id}
+          shoe={shoe}
+          sizes={byShoe.get(shoe.id) ?? []}
+          images={imagesByItem[shoe.item_number] ?? []}
+          locale={locale}
+        />
       ))}
     </div>
   );

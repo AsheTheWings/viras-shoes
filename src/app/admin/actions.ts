@@ -11,7 +11,6 @@ import {
   verifyCode,
   verifySession,
 } from "@/lib/admin-auth";
-import { IMAGE_VARIANTS } from "@/lib/types";
 
 export type AdminResult = { ok: true } | { ok: false; error: string };
 
@@ -262,31 +261,47 @@ export async function deleteShoeSize(sizeId: number): Promise<AdminResult> {
 
 const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
 
-export async function uploadShoeImage(
+function imageNameError(itemNumber: number, filename: string): string | null {
+  if (!Number.isInteger(itemNumber) || itemNumber <= 0) return "Unknown shoe";
+  // Keys the file to this shoe's gallery and blocks path traversal.
+  const ok = new RegExp(`^item-${itemNumber}-[A-Za-z0-9-]+\\.(webp|png|jpe?g)$`).test(filename);
+  return ok ? null : "Unknown image";
+}
+
+function isWebp(bytes: Buffer): boolean {
+  return (
+    bytes.length >= 12 &&
+    bytes.subarray(0, 4).toString("binary") === "RIFF" &&
+    bytes.subarray(8, 12).toString("binary") === "WEBP"
+  );
+}
+
+export async function uploadShoeImages(
   itemNumber: number,
-  variant: string,
   formData: FormData,
 ): Promise<AdminResult> {
   const denied = await assertAdmin();
   if (denied) return fail(denied);
-  if (!(IMAGE_VARIANTS as readonly string[]).includes(variant)) return fail("Unknown variant");
-  const file = formData.get("image");
-  if (!(file instanceof File) || file.size === 0) return fail("No image selected");
-  if (file.size > MAX_IMAGE_BYTES) return fail("Image must be 5 MB or smaller");
-  const bytes = Buffer.from(await file.arrayBuffer());
-  const isWebp =
-    bytes.length >= 12 &&
-    bytes.subarray(0, 4).toString("binary") === "RIFF" &&
-    bytes.subarray(8, 12).toString("binary") === "WEBP";
-  if (!isWebp) return fail("Image must be a WebP file");
+  const files = formData.getAll("images").filter((f) => f instanceof File && f.size > 0);
+  if (files.length === 0) return fail("No image selected");
+  const uploads: { name: string; bytes: Buffer }[] = [];
+  for (const [i, file] of (files as File[]).entries()) {
+    if (file.size > MAX_IMAGE_BYTES) return fail("Image must be 5 MB or smaller");
+    const bytes = Buffer.from(await file.arrayBuffer());
+    if (!isWebp(bytes)) return fail("Image must be a WebP file");
+    const stamp = Date.now().toString(36);
+    const rand = Math.floor(Math.random() * 0xffffff).toString(16).padStart(6, "0");
+    uploads.push({ name: `item-${itemNumber}-${stamp}${i.toString(36)}-${rand}.webp`, bytes });
+  }
   try {
-    const { error } = await adminDb()
-      .storage.from("assets")
-      .upload(`item-${itemNumber}-${variant}.webp`, bytes, {
+    const bucket = adminDb().storage.from("assets");
+    for (const { name, bytes } of uploads) {
+      const { error } = await bucket.upload(name, bytes, {
         contentType: "image/webp",
-        upsert: true,
+        upsert: false,
       });
-    if (error) throw error;
+      if (error) throw error;
+    }
     revalidatePath("/admin");
     return done();
   } catch (e) {
@@ -296,15 +311,16 @@ export async function uploadShoeImage(
 
 export async function deleteShoeImage(
   itemNumber: number,
-  variant: string,
+  filename: string,
 ): Promise<AdminResult> {
   const denied = await assertAdmin();
   if (denied) return fail(denied);
-  if (!(IMAGE_VARIANTS as readonly string[]).includes(variant)) return fail("Unknown variant");
+  const bad = imageNameError(itemNumber, filename);
+  if (bad) return fail(bad);
   try {
     const { error } = await adminDb()
       .storage.from("assets")
-      .remove([`item-${itemNumber}-${variant}.webp`]);
+      .remove([filename]);
     if (error) throw error;
     revalidatePath("/admin");
     return done();

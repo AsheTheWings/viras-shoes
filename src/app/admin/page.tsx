@@ -3,6 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 import type { Metadata } from "next";
 import { ADMIN_COOKIE, getAdminCode, verifySession } from "@/lib/admin-auth";
 import { DEFAULT_LOCALE, LOCALES, isRtl, t, type Locale } from "@/lib/i18n";
+import { listShoeImagesByItem } from "@/lib/shoe-images";
 import type { Shoe, ShoeSize } from "@/lib/types";
 import { AdminLocaleSwitcher } from "./admin-locale-switcher";
 import { AdminLoginForm } from "./login-form";
@@ -67,19 +68,22 @@ export default async function AdminPage() {
   }
 
   const db = createClient(url, key);
-  const [{ data: ordersData }, { data: shoesData }, { data: sizesData }] = await Promise.all([
-    db.from("orders").select("*").order("created_at", { ascending: false }).limit(500),
-    db.from("shoes").select("*").order("item_number", { ascending: true }),
-    db.from("shoe_sizes").select("*").order("shoe_id", { ascending: true }).order("size", {
-      ascending: true,
-    }),
-  ]);
+  const [{ data: ordersData }, { data: shoesData }, { data: sizesData }, imagesByItem] =
+    await Promise.all([
+      db.from("orders").select("*").order("created_at", { ascending: false }).limit(500),
+      db.from("shoes").select("*").order("item_number", { ascending: true }),
+      db.from("shoe_sizes").select("*").order("shoe_id", { ascending: true }).order("size", {
+        ascending: true,
+      }),
+      listShoeImagesByItem(),
+    ]);
 
   return shell(
     <AdminDashboard
       orders={(ordersData ?? []) as AdminOrder[]}
       shoes={(shoesData ?? []) as Shoe[]}
       sizes={(sizesData ?? []) as ShoeSize[]}
+      imagesByItem={imagesByItem}
       locale={locale}
     />,
     locale,

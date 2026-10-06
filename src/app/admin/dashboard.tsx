@@ -26,10 +26,11 @@ interface DashboardProps {
   orders: AdminOrder[];
   shoes: Shoe[];
   sizes: ShoeSize[];
+  imagesByItem: Record<number, string[]>;
   locale: Locale;
 }
 
-export function AdminDashboard({ orders, shoes, sizes, locale }: DashboardProps) {
+export function AdminDashboard({ orders, shoes, sizes, imagesByItem, locale }: DashboardProps) {
   const [tab, setTab] = useState<"orders" | "shoes">("orders");
   const shoeNameById = Object.fromEntries(shoes.map((s) => [s.id, s.name]));
 
@@ -58,7 +59,7 @@ export function AdminDashboard({ orders, shoes, sizes, locale }: DashboardProps)
       {tab === "orders" ? (
         <OrdersSection orders={orders} shoeNameById={shoeNameById} locale={locale} />
       ) : (
-        <ShoesSection shoes={shoes} sizes={sizes} locale={locale} />
+        <ShoesSection shoes={shoes} sizes={sizes} imagesByItem={imagesByItem} locale={locale} />
       )}
     </div>
   );

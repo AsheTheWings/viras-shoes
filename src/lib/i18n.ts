@@ -360,10 +360,25 @@ export const translations = {
     en: "Remove",
     fr: "Retirer",
   },
-  "admin.shoes.images": {
-    ar: "الصور (WebP فقط)",
-    en: "Images (WebP only)",
-    fr: "Images (WebP uniquement)",
+  "admin.shoes.photos": {
+    ar: "الصور",
+    en: "Photos",
+    fr: "Photos",
+  },
+  "admin.shoes.noPhotos": {
+    ar: "لا توجد صور بعد — ارفع الأولى.",
+    en: "No photos yet — upload the first one.",
+    fr: "Aucune photo — envoyez la première.",
+  },
+  "admin.shoes.addPhotos": {
+    ar: "إضافة صور",
+    en: "Add photos",
+    fr: "Ajouter des photos",
+  },
+  "admin.shoes.uploading": {
+    ar: "جارٍ الرفع…",
+    en: "Uploading…",
+    fr: "Envoi…",
   },
   "admin.shoes.upload": {
     ar: "رفع",
@@ -374,26 +389,6 @@ export const translations = {
     ar: "حذف",
     en: "Delete",
     fr: "Supprimer",
-  },
-  "admin.shoes.variant.main": {
-    ar: "أمامي",
-    en: "Front",
-    fr: "Avant",
-  },
-  "admin.shoes.variant.standard": {
-    ar: "جانبي",
-    en: "Side",
-    fr: "Côté",
-  },
-  "admin.shoes.variant.worn": {
-    ar: "مُلبس",
-    en: "Worn",
-    fr: "Porté",
-  },
-  "admin.shoes.variant.top": {
-    ar: "علوي",
-    en: "Top",
-    fr: "Dessus",
   },
 } as const;
 

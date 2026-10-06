@@ -15,8 +15,6 @@ export interface ShoeSize {
 
 export interface ShoeWithSizes extends Shoe {
   sizes: ShoeSize[];
+  /** Ordered photo filenames in the assets bucket (main photo first). */
+  images: string[];
 }
-
-export type ImageVariant = "main" | "standard" | "worn" | "top";
-
-export const IMAGE_VARIANTS: ImageVariant[] = ["main", "standard", "worn", "top"];
