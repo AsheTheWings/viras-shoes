@@ -36,7 +36,7 @@ export default async function AdminPage() {
       ? (rawLocale as Locale)
       : DEFAULT_LOCALE;
     return (
-      <main className="flex h-dvh items-center justify-center overflow-y-auto bg-neutral-950 px-4 py-10">
+      <main className="min-h-dvh bg-neutral-950">
         <AdminLoginForm configured={!!getAdminCode()} locale={locale} />
       </main>
     );
