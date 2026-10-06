@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { isRtl, t, type Locale } from "@/lib/i18n";
+import { AdminLocaleSwitcher } from "./admin-locale-switcher";
 import { loginAdmin } from "./actions";
 
 const SIGNIN_VIDEO = "/admin-signin.mp4";
@@ -87,7 +88,10 @@ export function AdminLoginForm({ configured, locale }: { configured: boolean; lo
           </p>
         </div>
       </div>
-      <div dir={dir} className="flex flex-1 items-center justify-center px-4 py-10">
+      <div dir={dir} className="relative flex flex-1 items-center justify-center px-4 py-10">
+        <div className="absolute end-4 top-4">
+          <AdminLocaleSwitcher locale={locale} tone="dark" />
+        </div>
         <form onSubmit={onSubmit} className="w-full max-w-sm space-y-4">
           <div>
             <h1 className="text-2xl font-semibold">{t("admin.signin.title", locale)}</h1>

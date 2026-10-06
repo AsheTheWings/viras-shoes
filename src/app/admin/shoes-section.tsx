@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { assetUrl } from "@/lib/supabase";
 import { IMAGE_VARIANTS, type ImageVariant, type Shoe, type ShoeSize } from "@/lib/types";
+import { t, type Locale } from "@/lib/i18n";
 import {
   addShoeSize,
   createShoe,
@@ -21,12 +22,18 @@ import {
   type AdminResult,
 } from "./actions";
 
-const VARIANT_LABELS: Record<ImageVariant, string> = {
-  main: "Front",
-  standard: "Side",
-  worn: "Worn",
-  top: "Top",
-};
+function variantLabel(variant: ImageVariant, locale: Locale): string {
+  switch (variant) {
+    case "main":
+      return t("admin.shoes.variant.main", locale);
+    case "standard":
+      return t("admin.shoes.variant.standard", locale);
+    case "worn":
+      return t("admin.shoes.variant.worn", locale);
+    case "top":
+      return t("admin.shoes.variant.top", locale);
+  }
+}
 
 function useAction() {
   const router = useRouter();
@@ -47,7 +54,15 @@ function useAction() {
   return { pending, error, run };
 }
 
-function ImageManager({ itemNumber, variant }: { itemNumber: number; variant: ImageVariant }) {
+function ImageManager({
+  itemNumber,
+  variant,
+  locale,
+}: {
+  itemNumber: number;
+  variant: ImageVariant;
+  locale: Locale;
+}) {
   const { pending, error, run } = useAction();
   const [bump, setBump] = useState(0);
   const [confirming, setConfirming] = useState(false);
@@ -56,9 +71,9 @@ function ImageManager({ itemNumber, variant }: { itemNumber: number; variant: Im
 
   return (
     <div className="flex items-center gap-3 rounded-md border border-neutral-200 p-2">
-      <Image src={src} alt={`${variant} image`} width={64} height={64} className="h-16 w-16 rounded object-cover bg-neutral-100" />
+      <Image src={src} alt={variantLabel(variant, locale)} width={64} height={64} className="h-16 w-16 rounded object-cover bg-neutral-100" />
       <div className="min-w-0 flex-1">
-        <p className="text-xs font-medium">{VARIANT_LABELS[variant]}</p>
+        <p className="text-xs font-medium">{variantLabel(variant, locale)}</p>
         <p className="truncate font-mono text-[11px] text-neutral-500">
           item-{itemNumber}-{variant}.webp
         </p>
@@ -84,7 +99,7 @@ function ImageManager({ itemNumber, variant }: { itemNumber: number; variant: Im
               });
             }}
           >
-            Upload
+            {t("admin.shoes.upload", locale)}
           </Button>
           {confirming ? (
             <span className="inline-flex gap-1.5">
@@ -99,15 +114,15 @@ function ImageManager({ itemNumber, variant }: { itemNumber: number; variant: Im
                   })
                 }
               >
-                Confirm
+                {t("admin.orders.confirm", locale)}
               </Button>
               <Button size="sm" variant="outline" onClick={() => setConfirming(false)}>
-                Keep
+                {t("admin.orders.keep", locale)}
               </Button>
             </span>
           ) : (
             <Button size="sm" variant="ghost" onClick={() => setConfirming(true)}>
-              Delete
+              {t("admin.shoes.delete", locale)}
             </Button>
           )}
         </div>
@@ -117,7 +132,7 @@ function ImageManager({ itemNumber, variant }: { itemNumber: number; variant: Im
   );
 }
 
-function SizeRow({ row }: { row: ShoeSize }) {
+function SizeRow({ row, locale }: { row: ShoeSize; locale: Locale }) {
   const { pending, error, run } = useAction();
   const [stock, setStock] = useState(String(row.stock));
   const [confirming, setConfirming] = useState(false);
@@ -131,7 +146,7 @@ function SizeRow({ row }: { row: ShoeSize }) {
         disabled={pending}
         inputMode="numeric"
         className="h-8 w-24"
-        aria-label={`Stock for size ${row.size}`}
+        aria-label={`${t("admin.shoes.stockLabel", locale)} ${row.size}`}
       />
       <Button
         size="sm"
@@ -139,20 +154,20 @@ function SizeRow({ row }: { row: ShoeSize }) {
         disabled={pending || stock === String(row.stock)}
         onClick={() => run(setSizeStock(row.id, stock))}
       >
-        Save
+        {t("admin.shoes.save", locale)}
       </Button>
       {confirming ? (
         <span className="inline-flex gap-1.5">
           <Button size="sm" variant="destructive" disabled={pending} onClick={() => run(deleteShoeSize(row.id))}>
-            Confirm
+            {t("admin.orders.confirm", locale)}
           </Button>
           <Button size="sm" variant="outline" onClick={() => setConfirming(false)}>
-            Keep
+            {t("admin.orders.keep", locale)}
           </Button>
         </span>
       ) : (
         <Button size="sm" variant="ghost" onClick={() => setConfirming(true)}>
-          Remove
+          {t("admin.shoes.remove", locale)}
         </Button>
       )}
       {error ? <span className="text-xs text-red-600">{error}</span> : null}
@@ -160,7 +175,7 @@ function SizeRow({ row }: { row: ShoeSize }) {
   );
 }
 
-function ShoeCard({ shoe, sizes }: { shoe: Shoe; sizes: ShoeSize[] }) {
+function ShoeCard({ shoe, sizes, locale }: { shoe: Shoe; sizes: ShoeSize[]; locale: Locale }) {
   const { pending, error, run } = useAction();
   const [name, setName] = useState(shoe.name);
   const [price, setPrice] = useState(String(shoe.price));
@@ -180,60 +195,60 @@ function ShoeCard({ shoe, sizes }: { shoe: Shoe; sizes: ShoeSize[] }) {
         {confirmingDelete ? (
           <span className="inline-flex gap-2">
             <Button size="sm" variant="destructive" disabled={pending} onClick={() => run(deleteShoe(shoe.id))}>
-              Confirm delete
+              {t("admin.shoes.confirmDelete", locale)}
             </Button>
             <Button size="sm" variant="outline" onClick={() => setConfirmingDelete(false)}>
-              Keep
+              {t("admin.orders.keep", locale)}
             </Button>
           </span>
         ) : (
           <Button size="sm" variant="outline" onClick={() => setConfirmingDelete(true)}>
-            Delete shoe
+            {t("admin.shoes.deleteShoe", locale)}
           </Button>
         )}
       </div>
 
       <div className="mt-3 grid gap-3 sm:grid-cols-3">
         <div className="space-y-1.5">
-          <Label>Name</Label>
+          <Label>{t("admin.shoes.name", locale)}</Label>
           <Input value={name} onChange={(e) => setName(e.target.value)} disabled={pending} />
         </div>
         <div className="space-y-1.5">
-          <Label>Price</Label>
+          <Label>{t("admin.shoes.price", locale)}</Label>
           <Input value={price} onChange={(e) => setPrice(e.target.value)} disabled={pending} inputMode="decimal" />
         </div>
         <div className="space-y-1.5 sm:col-span-1">
-          <Label>Item number (fixed, keys the images)</Label>
+          <Label>{t("admin.shoes.itemNumberHint", locale)}</Label>
           <Input value={shoe.item_number} disabled readOnly />
         </div>
       </div>
       <div className="mt-3 space-y-1.5">
-        <Label>Description</Label>
+        <Label>{t("admin.shoes.description", locale)}</Label>
         <Input value={description} onChange={(e) => setDescription(e.target.value)} disabled={pending} />
       </div>
       <div className="mt-3">
         <Button size="sm" disabled={pending || !dirty} onClick={() => run(updateShoe(shoe.id, { name, price, description }))}>
-          Save details
+          {t("admin.shoes.saveDetails", locale)}
         </Button>
       </div>
       {error ? <p className="mt-2 text-xs text-red-600">{error}</p> : null}
 
       <Separator className="my-4" />
 
-      <h3 className="text-sm font-semibold">Sizes &amp; stock</h3>
+      <h3 className="text-sm font-semibold">{t("admin.shoes.sizes", locale)}</h3>
       <div className="mt-1 divide-y divide-neutral-100">
-        {sizes.length === 0 ? <p className="py-2 text-sm text-neutral-500">No sizes yet.</p> : null}
+        {sizes.length === 0 ? <p className="py-2 text-sm text-neutral-500">{t("admin.shoes.noSizes", locale)}</p> : null}
         {sizes.map((s) => (
-          <SizeRow key={s.id} row={s} />
+          <SizeRow key={s.id} row={s} locale={locale} />
         ))}
       </div>
       <div className="mt-2 flex flex-wrap items-end gap-2">
         <div className="space-y-1.5">
-          <Label>Size (39–45)</Label>
+          <Label>{t("admin.shoes.sizeLabel", locale)}</Label>
           <Input value={newSize} onChange={(e) => setNewSize(e.target.value)} inputMode="numeric" className="h-8 w-24" />
         </div>
         <div className="space-y-1.5">
-          <Label>Stock</Label>
+          <Label>{t("admin.shoes.stockLabel", locale)}</Label>
           <Input value={newStock} onChange={(e) => setNewStock(e.target.value)} inputMode="numeric" className="h-8 w-24" />
         </div>
         <Button
@@ -247,23 +262,23 @@ function ShoeCard({ shoe, sizes }: { shoe: Shoe; sizes: ShoeSize[] }) {
             })
           }
         >
-          Add size
+          {t("admin.shoes.addSize", locale)}
         </Button>
       </div>
 
       <Separator className="my-4" />
 
-      <h3 className="text-sm font-semibold">Images (WebP only)</h3>
+      <h3 className="text-sm font-semibold">{t("admin.shoes.images", locale)}</h3>
       <div className="mt-2 grid gap-2 md:grid-cols-2">
         {IMAGE_VARIANTS.map((v) => (
-          <ImageManager key={v} itemNumber={shoe.item_number} variant={v} />
+          <ImageManager key={v} itemNumber={shoe.item_number} variant={v} locale={locale} />
         ))}
       </div>
     </section>
   );
 }
 
-function AddShoeForm() {
+function AddShoeForm({ locale }: { locale: Locale }) {
   const { pending, error, run } = useAction();
   const [open, setOpen] = useState(false);
   const [itemNumber, setItemNumber] = useState("");
@@ -274,28 +289,28 @@ function AddShoeForm() {
   if (!open) {
     return (
       <Button variant="outline" onClick={() => setOpen(true)}>
-        Add shoe
+        {t("admin.shoes.add", locale)}
       </Button>
     );
   }
   return (
     <div className="rounded-lg border border-neutral-200 bg-white p-4">
-      <h2 className="font-semibold">New shoe</h2>
+      <h2 className="font-semibold">{t("admin.shoes.new", locale)}</h2>
       <div className="mt-3 grid gap-3 sm:grid-cols-4">
         <div className="space-y-1.5">
-          <Label>Item number</Label>
+          <Label>{t("admin.shoes.itemNumber", locale)}</Label>
           <Input value={itemNumber} onChange={(e) => setItemNumber(e.target.value)} inputMode="numeric" />
         </div>
         <div className="space-y-1.5">
-          <Label>Name</Label>
+          <Label>{t("admin.shoes.name", locale)}</Label>
           <Input value={name} onChange={(e) => setName(e.target.value)} />
         </div>
         <div className="space-y-1.5">
-          <Label>Price</Label>
+          <Label>{t("admin.shoes.price", locale)}</Label>
           <Input value={price} onChange={(e) => setPrice(e.target.value)} inputMode="decimal" />
         </div>
         <div className="space-y-1.5">
-          <Label>Description</Label>
+          <Label>{t("admin.shoes.description", locale)}</Label>
           <Input value={description} onChange={(e) => setDescription(e.target.value)} />
         </div>
       </div>
@@ -314,17 +329,17 @@ function AddShoeForm() {
             })
           }
         >
-          Create
+          {t("admin.shoes.create", locale)}
         </Button>
         <Button size="sm" variant="outline" onClick={() => setOpen(false)}>
-          Cancel
+          {t("admin.shoes.cancel", locale)}
         </Button>
       </div>
     </div>
   );
 }
 
-export function ShoesSection({ shoes, sizes }: { shoes: Shoe[]; sizes: ShoeSize[] }) {
+export function ShoesSection({ shoes, sizes, locale }: { shoes: Shoe[]; sizes: ShoeSize[]; locale: Locale }) {
   const byShoe = new Map<number, ShoeSize[]>();
   for (const s of sizes) {
     const list = byShoe.get(s.shoe_id) ?? [];
@@ -333,9 +348,9 @@ export function ShoesSection({ shoes, sizes }: { shoes: Shoe[]; sizes: ShoeSize[
   }
   return (
     <div className="space-y-4">
-      <AddShoeForm />
+      <AddShoeForm locale={locale} />
       {shoes.map((shoe) => (
-        <ShoeCard key={shoe.id} shoe={shoe} sizes={byShoe.get(shoe.id) ?? []} />
+        <ShoeCard key={shoe.id} shoe={shoe} sizes={byShoe.get(shoe.id) ?? []} locale={locale} />
       ))}
     </div>
   );

@@ -184,6 +184,217 @@ export const translations = {
     en: "Close",
     fr: "Fermer",
   },
+  // Admin back office
+  "admin.logout": {
+    ar: "تسجيل الخروج",
+    en: "Sign out",
+    fr: "Déconnexion",
+  },
+  "admin.notconfigured.title": {
+    ar: "قاعدة بيانات الإدارة غير مهيأة",
+    en: "Admin database is not configured",
+    fr: "Base admin non configurée",
+  },
+  "admin.notconfigured.hint": {
+    ar: "اضبط SUPABASE_SERVICE_ROLE_KEY على هذا الخادم ثم أعد تحميل الصفحة.",
+    en: "Set SUPABASE_SERVICE_ROLE_KEY for this server, then reload this page.",
+    fr: "Définissez SUPABASE_SERVICE_ROLE_KEY sur ce serveur, puis rechargez la page.",
+  },
+  "admin.tabs.orders": {
+    ar: "الطلبات",
+    en: "Orders",
+    fr: "Commandes",
+  },
+  "admin.tabs.shoes": {
+    ar: "الأحذية والمخزون",
+    en: "Shoes & stock",
+    fr: "Chaussures & stock",
+  },
+  "admin.orders.empty": {
+    ar: "لا توجد طلبات بعد.",
+    en: "No orders yet.",
+    fr: "Aucune commande pour l'instant.",
+  },
+  "admin.orders.placed": {
+    ar: "التاريخ",
+    en: "Placed",
+    fr: "Passée le",
+  },
+  "admin.orders.shoe": {
+    ar: "الحذاء",
+    en: "Shoe",
+    fr: "Chaussure",
+  },
+  "admin.orders.size": {
+    ar: "المقاس",
+    en: "Size",
+    fr: "Taille",
+  },
+  "admin.orders.customer": {
+    ar: "الزبون",
+    en: "Customer",
+    fr: "Client",
+  },
+  "admin.orders.status": {
+    ar: "الحالة",
+    en: "Status",
+    fr: "Statut",
+  },
+  "admin.orders.actions": {
+    ar: "إجراءات",
+    en: "Actions",
+    fr: "Actions",
+  },
+  "admin.orders.save": {
+    ar: "حفظ",
+    en: "Save",
+    fr: "Enregistrer",
+  },
+  "admin.orders.delete": {
+    ar: "حذف",
+    en: "Delete",
+    fr: "Supprimer",
+  },
+  "admin.orders.confirm": {
+    ar: "تأكيد",
+    en: "Confirm",
+    fr: "Confirmer",
+  },
+  "admin.orders.keep": {
+    ar: "إبقاء",
+    en: "Keep",
+    fr: "Garder",
+  },
+  "admin.shoes.add": {
+    ar: "إضافة حذاء",
+    en: "Add shoe",
+    fr: "Ajouter une chaussure",
+  },
+  "admin.shoes.new": {
+    ar: "حذاء جديد",
+    en: "New shoe",
+    fr: "Nouvelle chaussure",
+  },
+  "admin.shoes.name": {
+    ar: "الاسم",
+    en: "Name",
+    fr: "Nom",
+  },
+  "admin.shoes.price": {
+    ar: "السعر",
+    en: "Price",
+    fr: "Prix",
+  },
+  "admin.shoes.description": {
+    ar: "الوصف",
+    en: "Description",
+    fr: "Description",
+  },
+  "admin.shoes.itemNumber": {
+    ar: "رقم الصنف",
+    en: "Item number",
+    fr: "Numéro d'article",
+  },
+  "admin.shoes.itemNumberHint": {
+    ar: "رقم الصنف (ثابت، يربط الصور)",
+    en: "Item number (fixed, keys the images)",
+    fr: "Numéro d'article (fixe, lie les images)",
+  },
+  "admin.shoes.create": {
+    ar: "إنشاء",
+    en: "Create",
+    fr: "Créer",
+  },
+  "admin.shoes.cancel": {
+    ar: "إلغاء",
+    en: "Cancel",
+    fr: "Annuler",
+  },
+  "admin.shoes.saveDetails": {
+    ar: "حفظ التفاصيل",
+    en: "Save details",
+    fr: "Enregistrer",
+  },
+  "admin.shoes.deleteShoe": {
+    ar: "حذف الحذاء",
+    en: "Delete shoe",
+    fr: "Supprimer",
+  },
+  "admin.shoes.confirmDelete": {
+    ar: "تأكيد الحذف",
+    en: "Confirm delete",
+    fr: "Confirmer",
+  },
+  "admin.shoes.sizes": {
+    ar: "المقاسات والمخزون",
+    en: "Sizes & stock",
+    fr: "Tailles & stock",
+  },
+  "admin.shoes.noSizes": {
+    ar: "لا توجد مقاسات بعد.",
+    en: "No sizes yet.",
+    fr: "Aucune taille pour l'instant.",
+  },
+  "admin.shoes.sizeLabel": {
+    ar: "المقاس (39–45)",
+    en: "Size (39–45)",
+    fr: "Taille (39–45)",
+  },
+  "admin.shoes.stockLabel": {
+    ar: "المخزون",
+    en: "Stock",
+    fr: "Stock",
+  },
+  "admin.shoes.addSize": {
+    ar: "إضافة مقاس",
+    en: "Add size",
+    fr: "Ajouter",
+  },
+  "admin.shoes.save": {
+    ar: "حفظ",
+    en: "Save",
+    fr: "Enregistrer",
+  },
+  "admin.shoes.remove": {
+    ar: "إزالة",
+    en: "Remove",
+    fr: "Retirer",
+  },
+  "admin.shoes.images": {
+    ar: "الصور (WebP فقط)",
+    en: "Images (WebP only)",
+    fr: "Images (WebP uniquement)",
+  },
+  "admin.shoes.upload": {
+    ar: "رفع",
+    en: "Upload",
+    fr: "Envoyer",
+  },
+  "admin.shoes.delete": {
+    ar: "حذف",
+    en: "Delete",
+    fr: "Supprimer",
+  },
+  "admin.shoes.variant.main": {
+    ar: "أمامي",
+    en: "Front",
+    fr: "Avant",
+  },
+  "admin.shoes.variant.standard": {
+    ar: "جانبي",
+    en: "Side",
+    fr: "Côté",
+  },
+  "admin.shoes.variant.worn": {
+    ar: "مُلبس",
+    en: "Worn",
+    fr: "Porté",
+  },
+  "admin.shoes.variant.top": {
+    ar: "علوي",
+    en: "Top",
+    fr: "Dessus",
+  },
 } as const;
 
 export type TranslationKey = keyof typeof translations;

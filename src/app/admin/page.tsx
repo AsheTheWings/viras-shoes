@@ -2,8 +2,9 @@ import { cookies } from "next/headers";
 import { createClient } from "@supabase/supabase-js";
 import type { Metadata } from "next";
 import { ADMIN_COOKIE, getAdminCode, verifySession } from "@/lib/admin-auth";
-import { DEFAULT_LOCALE, LOCALES, type Locale } from "@/lib/i18n";
+import { DEFAULT_LOCALE, LOCALES, isRtl, t, type Locale } from "@/lib/i18n";
 import type { Shoe, ShoeSize } from "@/lib/types";
+import { AdminLocaleSwitcher } from "./admin-locale-switcher";
 import { AdminLoginForm } from "./login-form";
 import { AdminDashboard, type AdminOrder } from "./dashboard";
 import { LogoutButton } from "./logout-button";
@@ -13,9 +14,15 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-function shell(content: React.ReactNode) {
+function resolveLocale(raw: string | undefined): Locale {
+  return (LOCALES as readonly string[]).includes(raw ?? "")
+    ? (raw as Locale)
+    : DEFAULT_LOCALE;
+}
+
+function shell(content: React.ReactNode, locale: Locale) {
   return (
-    <main className="h-dvh overflow-y-auto bg-neutral-100">
+    <main dir={isRtl(locale) ? "rtl" : "ltr"} className="h-dvh overflow-y-auto bg-neutral-100">
       <div className="mx-auto w-full max-w-6xl px-4 py-10">
         <p className="text-xs font-semibold uppercase tracking-widest text-neutral-500">
           Viras Shoes · Admin
@@ -29,12 +36,9 @@ function shell(content: React.ReactNode) {
 export default async function AdminPage() {
   const jar = await cookies();
   const signedIn = verifySession(jar.get(ADMIN_COOKIE)?.value);
+  const locale = resolveLocale(jar.get("viras_locale")?.value);
 
   if (!signedIn) {
-    const rawLocale = jar.get("viras_locale")?.value;
-    const locale: Locale = (LOCALES as readonly string[]).includes(rawLocale ?? "")
-      ? (rawLocale as Locale)
-      : DEFAULT_LOCALE;
     return (
       <main className="min-h-dvh bg-neutral-950">
         <AdminLoginForm configured={!!getAdminCode()} locale={locale} />
@@ -48,13 +52,17 @@ export default async function AdminPage() {
     return shell(
       <div className="rounded-lg border border-amber-300 bg-amber-50 p-6">
         <div className="flex items-center justify-between gap-4">
-          <h1 className="text-lg font-semibold">Admin database is not configured</h1>
-          <LogoutButton />
+          <h1 className="text-lg font-semibold">{t("admin.notconfigured.title", locale)}</h1>
+          <div className="flex items-center gap-2">
+            <AdminLocaleSwitcher locale={locale} tone="light" />
+            <LogoutButton locale={locale} />
+          </div>
         </div>
         <p className="mt-2 text-sm text-neutral-600">
-          Set SUPABASE_SERVICE_ROLE_KEY for this server, then reload this page.
+          {t("admin.notconfigured.hint", locale)}
         </p>
       </div>,
+      locale,
     );
   }
 
@@ -72,6 +80,8 @@ export default async function AdminPage() {
       orders={(ordersData ?? []) as AdminOrder[]}
       shoes={(shoesData ?? []) as Shoe[]}
       sizes={(sizesData ?? []) as ShoeSize[]}
+      locale={locale}
     />,
+    locale,
   );
 }

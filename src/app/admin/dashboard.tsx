@@ -4,6 +4,8 @@ import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import type { Shoe, ShoeSize } from "@/lib/types";
+import { t, type Locale } from "@/lib/i18n";
+import { AdminLocaleSwitcher } from "./admin-locale-switcher";
 import { LogoutButton } from "./logout-button";
 import { OrdersSection } from "./orders-section";
 import { ShoesSection } from "./shoes-section";
@@ -24,9 +26,10 @@ interface DashboardProps {
   orders: AdminOrder[];
   shoes: Shoe[];
   sizes: ShoeSize[];
+  locale: Locale;
 }
 
-export function AdminDashboard({ orders, shoes, sizes }: DashboardProps) {
+export function AdminDashboard({ orders, shoes, sizes, locale }: DashboardProps) {
   const [tab, setTab] = useState<"orders" | "shoes">("orders");
   const shoeNameById = Object.fromEntries(shoes.map((s) => [s.id, s.name]));
 
@@ -38,21 +41,24 @@ export function AdminDashboard({ orders, shoes, sizes }: DashboardProps) {
             variant={tab === "orders" ? "default" : "outline"}
             onClick={() => setTab("orders")}
           >
-            Orders <Badge variant="secondary" className="ml-1">{orders.length}</Badge>
+            {t("admin.tabs.orders", locale)} <Badge variant="secondary" className="ms-1">{orders.length}</Badge>
           </Button>
           <Button
             variant={tab === "shoes" ? "default" : "outline"}
             onClick={() => setTab("shoes")}
           >
-            Shoes &amp; stock <Badge variant="secondary" className="ml-1">{shoes.length}</Badge>
+            {t("admin.tabs.shoes", locale)} <Badge variant="secondary" className="ms-1">{shoes.length}</Badge>
           </Button>
         </div>
-        <LogoutButton />
+        <div className="flex items-center gap-2">
+          <AdminLocaleSwitcher locale={locale} tone="light" />
+          <LogoutButton locale={locale} />
+        </div>
       </div>
       {tab === "orders" ? (
-        <OrdersSection orders={orders} shoeNameById={shoeNameById} />
+        <OrdersSection orders={orders} shoeNameById={shoeNameById} locale={locale} />
       ) : (
-        <ShoesSection shoes={shoes} sizes={sizes} />
+        <ShoesSection shoes={shoes} sizes={sizes} locale={locale} />
       )}
     </div>
   );

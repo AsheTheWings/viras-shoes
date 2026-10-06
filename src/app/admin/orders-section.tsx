@@ -4,15 +4,18 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { t, type Locale } from "@/lib/i18n";
 import { deleteOrder, updateOrderStatus } from "./actions";
 import type { AdminOrder } from "./dashboard";
 
-function formatDate(value: string): string {
+const DATE_LOCALES: Record<Locale, string> = { ar: "ar", en: "en-GB", fr: "fr" };
+
+function formatDate(value: string, locale: Locale): string {
   const d = new Date(value);
-  return Number.isNaN(d.getTime()) ? value : d.toLocaleString("en-GB");
+  return Number.isNaN(d.getTime()) ? value : d.toLocaleString(DATE_LOCALES[locale]);
 }
 
-function OrderRow({ order, shoeName }: { order: AdminOrder; shoeName: string }) {
+function OrderRow({ order, shoeName, locale }: { order: AdminOrder; shoeName: string; locale: Locale }) {
   const router = useRouter();
   const [pending, start] = useTransition();
   const [status, setStatus] = useState(order.status ?? "");
@@ -35,7 +38,7 @@ function OrderRow({ order, shoeName }: { order: AdminOrder; shoeName: string }) 
   return (
     <tr className="border-t border-neutral-200">
       <td className="whitespace-nowrap px-3 py-2 text-xs text-neutral-500">
-        {formatDate(order.created_at)}
+        {formatDate(order.created_at, locale)}
       </td>
       <td className="px-3 py-2 font-medium">{shoeName}</td>
       <td className="px-3 py-2">{order.size ?? "—"}</td>
@@ -58,11 +61,11 @@ function OrderRow({ order, shoeName }: { order: AdminOrder; shoeName: string }) 
             disabled={pending || status.trim() === (order.status ?? "")}
             onClick={() => run(updateOrderStatus(order.id, status))}
           >
-            Save
+            {t("admin.orders.save", locale)}
           </Button>
         </div>
       </td>
-      <td className="px-3 py-2 text-right">
+      <td className="px-3 py-2 text-end">
         {confirming ? (
           <span className="inline-flex gap-2">
             <Button
@@ -71,15 +74,15 @@ function OrderRow({ order, shoeName }: { order: AdminOrder; shoeName: string }) 
               disabled={pending}
               onClick={() => run(deleteOrder(order.id))}
             >
-              Confirm
+              {t("admin.orders.confirm", locale)}
             </Button>
             <Button size="sm" variant="outline" onClick={() => setConfirming(false)}>
-              Keep
+              {t("admin.orders.keep", locale)}
             </Button>
           </span>
         ) : (
           <Button size="sm" variant="outline" onClick={() => setConfirming(true)}>
-            Delete
+            {t("admin.orders.delete", locale)}
           </Button>
         )}
         {error ? <p className="mt-1 text-xs text-red-600">{error}</p> : null}
@@ -91,28 +94,30 @@ function OrderRow({ order, shoeName }: { order: AdminOrder; shoeName: string }) 
 export function OrdersSection({
   orders,
   shoeNameById,
+  locale,
 }: {
   orders: AdminOrder[];
   shoeNameById: Record<number, string>;
+  locale: Locale;
 }) {
   if (orders.length === 0) {
     return (
       <div className="rounded-lg border border-neutral-200 bg-white p-6 text-sm text-neutral-500">
-        No orders yet.
+        {t("admin.orders.empty", locale)}
       </div>
     );
   }
   return (
     <div className="overflow-x-auto rounded-lg border border-neutral-200 bg-white">
-      <table className="w-full text-left text-sm">
+      <table className="w-full text-start text-sm">
         <thead>
           <tr className="text-xs uppercase tracking-wide text-neutral-500">
-            <th className="px-3 py-2">Placed</th>
-            <th className="px-3 py-2">Shoe</th>
-            <th className="px-3 py-2">Size</th>
-            <th className="px-3 py-2">Customer</th>
-            <th className="px-3 py-2">Status</th>
-            <th className="px-3 py-2 text-right">Actions</th>
+            <th className="px-3 py-2">{t("admin.orders.placed", locale)}</th>
+            <th className="px-3 py-2">{t("admin.orders.shoe", locale)}</th>
+            <th className="px-3 py-2">{t("admin.orders.size", locale)}</th>
+            <th className="px-3 py-2">{t("admin.orders.customer", locale)}</th>
+            <th className="px-3 py-2">{t("admin.orders.status", locale)}</th>
+            <th className="px-3 py-2 text-end">{t("admin.orders.actions", locale)}</th>
           </tr>
         </thead>
         <tbody>
@@ -121,6 +126,7 @@ export function OrdersSection({
               key={o.id}
               order={o}
               shoeName={o.shoe_id != null ? (shoeNameById[o.shoe_id] ?? `#${o.shoe_id}`) : "—"}
+              locale={locale}
             />
           ))}
         </tbody>
