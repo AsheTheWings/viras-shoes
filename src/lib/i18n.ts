@@ -39,9 +39,9 @@ export function pathForLocale(locale: Locale) {
 export const translations = {
   // Ticker
   "ticker.text": {
-    ar: "مجموعة جديدة • مارس 2026 • أنماط مختارة بعناية •",
-    en: "New Collection • March 2026 • Handpicked Styles •",
-    fr: "Nouvelle Collection • Mars 2026 • Styles Triés •",
+    ar: "مجموعة جديدة • أكتوبر 2026 • أنماط مختارة بعناية •",
+    en: "New Collection • October 2026 • Handpicked Styles •",
+    fr: "Nouvelle Collection • Octobre 2026 • Styles Triés •",
   },
   // Order form
   "order.now": {
