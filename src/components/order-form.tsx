@@ -1,261 +1,290 @@
 "use client";
 
-import { useState, useTransition, useEffect } from "react";
-import { motion } from "motion/react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { useId, useRef, useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
+import { ArrowUpRight, Check, CheckCircle2, LoaderCircle } from "lucide-react";
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
+  DialogDescription,
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import type { ShoeWithSizes } from "@/lib/types";
 import { placeOrder } from "@/app/actions";
-import { CheckCircle, X } from "lucide-react";
 import { useLocale } from "@/lib/locale-context";
+import { formatPrice } from "@/lib/catalog";
+import { contactErrors, normalizePhone } from "@/lib/order-validation";
+import type { ShoeWithSizes } from "@/lib/types";
 
-interface OrderFormProps {
-  shoe: ShoeWithSizes;
-  mobile?: boolean;
-}
-
-const SIZES = [39, 40, 41, 42, 43, 44, 45] as const;
-
-// Validation helpers
-const isValidPhone = (phone: string): boolean => {
-  // Must start with 05, 06, or 07 and be exactly 10 digits
-  const phoneRegex = /^(05|06|07)\d{8}$/;
-  return phoneRegex.test(phone.replace(/\s/g, ""));
-};
-
-const isValidEmail = (email: string): boolean => {
-  if (!email.trim()) return true; // Email is optional
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return emailRegex.test(email.trim());
-};
-
-export function OrderForm({ shoe, mobile }: OrderFormProps) {
-  const { t } = useLocale();
-  const [isPending, startTransition] = useTransition();
+export function OrderForm({ shoe }: { shoe: ShoeWithSizes }) {
+  const { t, locale, dir } = useLocale();
+  const id = useId();
+  const router = useRouter();
   const [selectedSize, setSelectedSize] = useState<number | null>(null);
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
-  const [errors, setErrors] = useState<{
-    phone?: string;
-    email?: string;
-  }>({});
+  const [errors, setErrors] = useState({
+    phone: false,
+    email: false,
+    contact: false,
+  });
   const [result, setResult] = useState<{
     success: boolean;
     error?: string;
   } | null>(null);
+  const [pending, start] = useTransition();
+  const submitting = useRef(false);
+  const sizes = Array.from({ length: 7 }, (_, index) => index + 39);
 
-  const sizeStock = (size: number) =>
-    shoe.sizes.find((s) => s.size === size)?.stock ?? 0;
-
-  const validateForm = (): boolean => {
-    const newErrors: { phone?: string; email?: string } = {};
-
-    if (phone.trim() && !isValidPhone(phone)) {
-      newErrors.phone = t("validation.phone");
+  function changeOpen(next: boolean) {
+    if (submitting.current) return;
+    setOpen(next);
+    if (!next && result?.success) {
+      setResult(null);
+      setName("");
+      setPhone("");
+      setEmail("");
+      setSelectedSize(null);
+      setErrors({ phone: false, email: false, contact: false });
     }
+  }
 
-    if (email.trim() && !isValidEmail(email)) {
-      newErrors.email = t("validation.email");
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedSize || !name.trim()) return;
-
-    if (!validateForm()) return;
-
-    startTransition(async () => {
-      const res = await placeOrder({
-        shoe_id: shoe.id,
-        size: selectedSize,
-        customer_name: name.trim(),
-        customer_phone: phone.trim(),
-        customer_email: email.trim(),
-      });
-      setResult(res);
+  function submit(event: React.FormEvent) {
+    event.preventDefault();
+    if (!selectedSize || !name.trim() || submitting.current) return;
+    const nextErrors = contactErrors(phone, email);
+    setErrors(nextErrors);
+    if (Object.values(nextErrors).some(Boolean)) return;
+    submitting.current = true;
+    setResult(null);
+    start(async () => {
+      try {
+        const response = await placeOrder({
+          shoe_id: shoe.id,
+          size: selectedSize,
+          customer_name: name.trim(),
+          customer_phone: normalizePhone(phone),
+          customer_email: email.trim(),
+        });
+        setResult(response);
+        if (response.success) router.refresh();
+      } catch {
+        setResult({ success: false, error: "failed" });
+      } finally {
+        submitting.current = false;
+      }
     });
-  };
-
-  // Auto-close dialog after 3 seconds on success
-  useEffect(() => {
-    if (result?.success) {
-      const timer = setTimeout(() => {
-        setOpen(false);
-        // Reset form after closing
-        setTimeout(() => {
-          setResult(null);
-          setName("");
-          setPhone("");
-          setEmail("");
-          setSelectedSize(null);
-        }, 300);
-      }, 3000);
-      return () => clearTimeout(timer);
-    }
-  }, [result?.success]);
+  }
 
   return (
-    <div className={mobile ? "space-y-4" : "flex items-center gap-4 py-1"}>
-      {/* Size boxes */}
-      <div className={mobile ? "flex gap-1.5" : "flex gap-1.5"}>
-        {SIZES.map((size) => {
-          const stock = sizeStock(size);
-          const isSelected = selectedSize === size;
+    <div className="order-panel">
+      <div className="size-heading">
+        <span>{t("order.choose")}</span>
+        <span>EU</span>
+      </div>
+      <div className="size-picker" role="group" aria-label={t("order.choose")}>
+        {sizes.map((size) => {
+          const stock = shoe.sizes.find((row) => row.size === size)?.stock ?? 0;
           return (
             <button
+              type="button"
               key={size}
               disabled={stock <= 0}
-              onClick={() => setSelectedSize(size)}
-              className={`flex items-center justify-center rounded font-medium transition-all ${
-                mobile ? "h-6 flex-1 text-[10px]" : "h-9 w-9 text-xs"
-              } ${
-                stock <= 0
-                  ? "cursor-not-allowed bg-white/10 text-white/30 line-through"
-                  : isSelected
-                    ? "bg-white text-black ring-2 ring-white/40 ring-offset-2 ring-offset-black"
-                    : "bg-white/15 text-white hover:bg-white/25"
-              }`}
+              aria-pressed={selectedSize === size}
+              aria-label={`EU ${size}${stock <= 0 ? ` — ${t("shop.soldout")}` : ""}`}
+              className={selectedSize === size ? "is-selected" : ""}
+              onClick={() => {
+                setSelectedSize(size);
+                setResult(null);
+              }}
             >
               {size}
             </button>
           );
         })}
       </div>
-
-      {/* Order Now → opens dialog */}
-      <motion.span
-        key={selectedSize}
-        animate={selectedSize && !mobile ? { scale: [1, 1.07, 1] } : { scale: 1 }}
-        transition={
-          selectedSize && !mobile
-            ? { duration: 0.9, ease: "easeInOut", repeat: Infinity }
-            : { duration: 0.2 }
-        }
-        className={mobile ? "block" : "inline-flex"}
-      >
-      <Dialog open={open} onOpenChange={setOpen}>
+      <p className="size-hint" aria-live="polite">
+        {selectedSize ? (
+          <>
+            <Check size={13} />
+            {t("order.selected")} — EU {selectedSize}
+          </>
+        ) : (
+          t("order.hint")
+        )}
+      </p>
+      <Dialog open={open} onOpenChange={changeOpen}>
         <DialogTrigger
           render={
-            <Button
+            <button
+              className="shop-button order-button"
               disabled={!selectedSize}
-              className={
-                mobile
-                  ? `h-10 w-full rounded text-sm font-semibold transition-colors ${selectedSize ? "bg-white text-black hover:bg-white/90" : ""}`
-                  : "h-10 rounded-md px-6 text-md font-semibold"
-              }
             />
           }
         >
-          {t("order.now")} — {shoe.price} MAD
+          {t("order.now")}
+          <ArrowUpRight size={19} />
         </DialogTrigger>
-        <DialogContent className="p-6 sm:p-8">
+        <DialogContent
+          className="checkout-dialog"
+          dir={dir}
+          closeLabel={t("shop.close")}
+          showCloseButton={!pending}
+        >
           {result?.success ? (
-            <div className="flex flex-col items-center gap-4 py-8 text-center">
-              <div className="flex h-20 w-20 items-center justify-center rounded-full bg-green-100">
-                <CheckCircle className="h-10 w-10 text-green-600" />
+            <div className="order-success" role="status">
+              <span className="success-icon">
+                <CheckCircle2 size={34} strokeWidth={1.5} />
+              </span>
+              <DialogTitle>{t("order.success.title")}</DialogTitle>
+              <DialogDescription>
+                {t("order.success.message")}
+              </DialogDescription>
+              <div className="checkout-summary">
+                <strong>{shoe.name}</strong>
+                <span>EU {selectedSize}</span>
+                <span dir="ltr">{formatPrice(shoe.price, locale)}</span>
               </div>
-              <div>
-                <h3 className="text-base font-semibold text-green-800 sm:text-lg">
-                  {t("order.success.title")}
-                </h3>
-                <p className="mt-2 text-sm text-green-700 sm:text-base">
-                  {t("order.success.message")}
-                </p>
-              </div>
-              <Button
-                onClick={() => setOpen(false)}
-                variant="outline"
-                className="mt-4 text-sm sm:text-base"
-              >
-                {t("order.success.close")}
-              </Button>
+              <button className="shop-button" onClick={() => changeOpen(false)}>
+                {t("order.continue")}
+                <ArrowUpRight size={18} />
+              </button>
             </div>
           ) : (
             <>
-              <DialogHeader>
-                <DialogTitle className="text-sm sm:text-base">
-                  {shoe.name} — {t("order.size")} {selectedSize}
-                </DialogTitle>
-              </DialogHeader>
-              <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
-                <div>
-                  <Label htmlFor="order-name" className="text-xs sm:text-sm">{t("order.name")}</Label>
-                  <Input
-                    id="order-name"
+              <p className="eyebrow">VIRAS / {t("order.review")}</p>
+              <DialogTitle className="checkout-title">
+                {t("order.contact")}
+              </DialogTitle>
+              <DialogDescription>{t("order.note")}</DialogDescription>
+              <div className="checkout-summary">
+                <strong>{shoe.name}</strong>
+                <span>EU {selectedSize}</span>
+                <span dir="ltr">{formatPrice(shoe.price, locale)}</span>
+              </div>
+              <form
+                onSubmit={submit}
+                className="checkout-form"
+                aria-busy={pending}
+              >
+                <label htmlFor={`${id}-name`}>
+                  {t("order.name")}
+                  <input
+                    id={`${id}-name`}
+                    name="name"
                     value={name}
-                    onChange={(e) => setName(e.target.value)}
+                    onChange={(event) => setName(event.target.value)}
+                    autoComplete="name"
+                    maxLength={120}
                     placeholder={t("order.name.placeholder")}
                     required
-                    className="mt-1 text-xs sm:text-sm"
+                    disabled={pending}
                   />
-                </div>
-                <div className="flex flex-col gap-3 sm:flex-row">
-                  <div className="flex-1">
-                    <Label htmlFor="order-phone" className="text-xs sm:text-sm">{t("order.phone")}</Label>
-                    <Input
-                      id="order-phone"
-                      value={phone}
-                      onChange={(e) => {
-                        setPhone(e.target.value);
-                        if (errors.phone) setErrors((prev) => ({ ...prev, phone: undefined }));
-                      }}
-                      placeholder="05/06/07..."
-                      className={`mt-1 text-xs sm:text-sm ${errors.phone ? "border-red-500" : ""}`}
-                    />
-                    {errors.phone && (
-                      <p className="mt-1 text-xs text-red-500">{errors.phone}</p>
-                    )}
-                  </div>
-                  <div className="flex-1">
-                    <Label htmlFor="order-email" className="text-xs sm:text-sm">{t("order.email")}</Label>
-                    <Input
-                      id="order-email"
-                      type="email"
-                      value={email}
-                      onChange={(e) => {
-                        setEmail(e.target.value);
-                        if (errors.email) setErrors((prev) => ({ ...prev, email: undefined }));
-                      }}
-                      placeholder="you@email.com"
-                      className={`mt-1 text-xs sm:text-sm ${errors.email ? "border-red-500" : ""}`}
-                    />
-                    {errors.email && (
-                      <p className="mt-1 text-xs text-red-500">{errors.email}</p>
-                    )}
-                  </div>
-                </div>
-
-                {result?.error && (
-                  <p className="text-xs text-destructive sm:text-sm">{result.error}</p>
+                </label>
+                <label htmlFor={`${id}-phone`}>
+                  {t("order.phone")}
+                  <input
+                    id={`${id}-phone`}
+                    name="tel"
+                    type="tel"
+                    dir="ltr"
+                    inputMode="tel"
+                    autoComplete="tel"
+                    maxLength={40}
+                    placeholder="06 12 34 56 78"
+                    value={phone}
+                    onChange={(event) => {
+                      setPhone(event.target.value);
+                      setErrors((current) => ({
+                        ...current,
+                        phone: false,
+                        contact: false,
+                      }));
+                    }}
+                    disabled={pending}
+                    aria-invalid={errors.phone}
+                    aria-describedby={
+                      errors.phone ? `${id}-phone-error` : undefined
+                    }
+                  />
+                  {errors.phone && (
+                    <span id={`${id}-phone-error`} className="field-error">
+                      {t("validation.phone")}
+                    </span>
+                  )}
+                </label>
+                <label htmlFor={`${id}-email`}>
+                  {t("order.email")}
+                  <input
+                    id={`${id}-email`}
+                    name="email"
+                    type="email"
+                    dir="ltr"
+                    autoComplete="email"
+                    maxLength={254}
+                    placeholder="you@example.com"
+                    value={email}
+                    onChange={(event) => {
+                      setEmail(event.target.value);
+                      setErrors((current) => ({
+                        ...current,
+                        email: false,
+                        contact: false,
+                      }));
+                    }}
+                    disabled={pending}
+                    aria-invalid={errors.email}
+                    aria-describedby={
+                      errors.email ? `${id}-email-error` : undefined
+                    }
+                  />
+                  {errors.email && (
+                    <span id={`${id}-email-error`} className="field-error">
+                      {t("validation.email")}
+                    </span>
+                  )}
+                </label>
+                {errors.contact && (
+                  <p className="field-error" role="alert">
+                    {t("order.contact.required")}
+                  </p>
                 )}
-
-                <Button
+                {result?.error && (
+                  <p className="field-error" role="alert">
+                    {t(
+                      result.error === "stock"
+                        ? "order.stock.error"
+                        : result.error === "invalid"
+                          ? "order.contact.required"
+                          : "order.error",
+                    )}
+                  </p>
+                )}
+                <button
                   type="submit"
-                  disabled={isPending || !name.trim()}
-                  className="w-full text-xs sm:text-sm"
+                  className="shop-button order-button"
+                  disabled={pending || !name.trim()}
                 >
-                  {isPending ? t("order.placing") : `${t("order.confirm")} — ${shoe.price} MAD`}
-                </Button>
+                  {pending ? (
+                    <>
+                      <LoaderCircle size={18} className="animate-spin" />
+                      {t("order.placing")}
+                    </>
+                  ) : (
+                    <>
+                      {t("order.confirm")}
+                      <span dir="ltr">{formatPrice(shoe.price, locale)}</span>
+                      <ArrowUpRight size={18} />
+                    </>
+                  )}
+                </button>
               </form>
             </>
           )}
         </DialogContent>
       </Dialog>
-      </motion.span>
     </div>
   );
 }
