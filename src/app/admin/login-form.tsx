@@ -11,6 +11,7 @@ import { AdminLocaleSwitcher } from "./admin-locale-switcher";
 import { loginAdmin } from "./actions";
 
 const SIGNIN_VIDEO = "/admin-signin.mp4";
+const CODE_MAX_LENGTH = 8;
 
 function playQuietly(video: HTMLVideoElement) {
   // The muted *property* (not the JSX attribute) is what unlocks autoplay.
@@ -18,7 +19,13 @@ function playQuietly(video: HTMLVideoElement) {
   video.play().catch(() => {});
 }
 
-export function AdminLoginForm({ configured, locale }: { configured: boolean; locale: Locale }) {
+export function AdminLoginForm({
+  configured,
+  locale,
+}: {
+  configured: boolean;
+  locale: Locale;
+}) {
   const router = useRouter();
   const dir = isRtl(locale) ? "rtl" : "ltr";
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -32,7 +39,10 @@ export function AdminLoginForm({ configured, locale }: { configured: boolean; lo
 
   if (!configured) {
     return (
-      <div dir={dir} className="flex min-h-dvh w-full items-center justify-center bg-neutral-950 p-4 text-white">
+      <div
+        dir={dir}
+        className="flex min-h-dvh w-full items-center justify-center bg-neutral-950 p-4 text-white"
+      >
         <p className="max-w-sm text-center text-sm text-white/70">
           {t("admin.signin.unconfigured", locale)}
         </p>
@@ -88,14 +98,21 @@ export function AdminLoginForm({ configured, locale }: { configured: boolean; lo
           </p>
         </div>
       </div>
-      <div dir={dir} className="relative flex flex-1 items-center justify-center px-4 py-10">
+      <div
+        dir={dir}
+        className="relative flex flex-1 items-center justify-center px-4 py-10"
+      >
         <div className="absolute end-4 top-4">
           <AdminLocaleSwitcher locale={locale} tone="dark" />
         </div>
         <form onSubmit={onSubmit} className="w-full max-w-sm space-y-4">
           <div>
-            <h1 className="text-2xl font-semibold">{t("admin.signin.title", locale)}</h1>
-            <p className="mt-1 text-sm text-white/60">{t("admin.signin.subtitle", locale)}</p>
+            <h1 className="text-2xl font-semibold">
+              {t("admin.signin.title", locale)}
+            </h1>
+            <p className="mt-1 text-sm text-white/60">
+              {t("admin.signin.subtitle", locale)}
+            </p>
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="admin-code" className="text-white/80">
@@ -107,12 +124,27 @@ export function AdminLoginForm({ configured, locale }: { configured: boolean; lo
                 id="admin-code"
                 type="password"
                 autoComplete="off"
+                autoCapitalize="none"
+                autoCorrect="off"
+                spellCheck={false}
+                maxLength={CODE_MAX_LENGTH}
+                pattern="[A-Za-z0-9]{1,8}"
+                aria-describedby="admin-code-hint"
                 value={code}
-                onChange={(e) => setCode(e.target.value)}
+                onChange={(e) =>
+                  setCode(
+                    e.target.value
+                      .replace(/[^A-Za-z0-9]/g, "")
+                      .slice(0, CODE_MAX_LENGTH),
+                  )
+                }
                 disabled={pending}
                 className="border-white/15 bg-white/10 ps-9 text-white placeholder:text-white/35"
               />
             </div>
+            <p id="admin-code-hint" className="text-xs text-white/45">
+              {t("admin.signin.hint", locale)}
+            </p>
           </div>
           {error ? (
             <p className="text-sm text-red-400">
@@ -128,7 +160,9 @@ export function AdminLoginForm({ configured, locale }: { configured: boolean; lo
             disabled={pending || code.length === 0}
             className="w-full bg-[#7B3F1E] text-white hover:bg-[#93522a]"
           >
-            {pending ? t("admin.signin.checking", locale) : t("admin.signin.submit", locale)}
+            {pending
+              ? t("admin.signin.checking", locale)
+              : t("admin.signin.submit", locale)}
           </Button>
         </form>
       </div>
