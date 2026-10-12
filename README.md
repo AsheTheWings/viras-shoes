@@ -1,59 +1,83 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Viras Shoes
 
-## Getting Started
+Viras is a footwear storefront and order-management application built with
+Next.js 16, React 19, and Supabase. The shop is available in Arabic at `/`,
+English at `/en`, and French at `/fr`.
 
-First, run the development server:
+## Shop
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+The collection displays prices in Moroccan dirhams and available EU sizes.
+Customers can search names and descriptions, filter by available size, sort
+by price or name, and save pairs in their browser. Saved pairs stay on that
+browser across visits; they do not require an account.
+
+Each product opens a gallery with thumbnails, previous/next controls, a
+full-size photo view, descriptions, stock availability, and a size picker.
+Product links use `#shoe-<id>` and can be copied from the share button or
+address bar. The browser Back button closes an opened product.
+
+To order, choose an available size, enter a name, and provide a valid phone
+number or email. Moroccan mobile numbers accept local, `+212`, and `00212`
+formats. An order request records one pair, updates stock, and displays a
+confirmation until the customer closes it. The shop uses a contact-based
+confirmation flow; it does not collect payment or a delivery address.
+The team confirms availability and delivery details with the customer.
+
+## Development
+
+Install dependencies with `npm ci`. Supply the following values through the
+process environment or an untracked Next.js environment file:
+
+| Input                           | Purpose                                           |
+| ------------------------------- | ------------------------------------------------- |
+| `NEXT_PUBLIC_SUPABASE_URL`      | Supabase project URL                              |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Public Supabase client key                        |
+| `SUPABASE_SERVICE_ROLE_KEY`     | Server-side admin and image-storage access        |
+| `ADMIN_CODE`                    | Single-admin sign-in code                         |
+| `TELEGRAM_BOT_TOKEN`            | Optional server-side order notification bot token |
+| `TELEGRAM_CHAT_ID`              | Optional order notification destination           |
+
+Both Telegram values must be present to enable order notifications. They are
+server-only. Never commit real credentials.
+
+```sh
+npm run dev -- --hostname 127.0.0.1 --port 3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open the loopback listener through your development host's reachable name.
+For an optimized build, run `npm run build` and then
+`npm run start -- --hostname 127.0.0.1 --port 3000`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Verification
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Run `npm run lint`, `npx tsc --noEmit`, and `npm run build` for static and build
+checks. Pure unit tests for catalog filtering, sorting, price formatting,
+and order validation run with Node.js 22.18 or later:
 
-## Learn More
+```sh
+node --experimental-strip-types --test tests/*.unit.test.mts
+```
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Browser checks should exercise desktop and mobile layouts, all three
+languages, search and empty results, favorites across reloads, size filtering,
+product deep links, gallery navigation and zoom, and checkout validation.
+Use a separate fixture database for order submission checks; placing an order
+writes an order and changes stock.
 
 ## Admin
 
-The `/admin` page is a single-admin back office: sign in with one admin code,
-then manage orders (status, delete) and shoes (name, price, description, sizes
-and stock, WebP images per variant).
+Sign in at `/admin` with the admin code to manage orders, product details,
+available sizes, stock, and galleries. The dashboard summarizes orders,
+products, stock units, and sizes with one or two units remaining. Orders can
+be searched by customer, contact details, product name, or order ID and
+filtered by their stored status.
 
-Environment (never commit real values; `.env*` is gitignored):
+Admin data access uses the service-role key in server code. Rotating the admin
+code invalidates existing sessions. The orders view displays the latest 500
+orders, and its search and summaries apply to that loaded set.
 
-```bash
-NEXT_PUBLIC_SUPABASE_URL=https://<project-ref>.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=<anon key>
-ADMIN_CODE=$(openssl rand -hex 32)
-SUPABASE_SERVICE_ROLE_KEY=<service role key from the Supabase dashboard>
-```
-
-- `ADMIN_CODE` is server-only and never sent to the browser. Generate a fresh
-  value per environment; rotating it signs everyone out.
-- Admin reads and writes use the service role key from server code only, so
-  the admin code cannot be bypassed through the public API.
-- Product images live in the `assets` storage bucket as
-  `item-<item_number>-<variant>.webp` (`main`, `standard`, `worn`, `top`).
-  Uploads must be WebP files of 5 MB or less.
+Product photos live in the Supabase `assets` bucket, with filenames keyed by
+item number. WebP uploads are limited to 5 MB per image. The gallery groups
+files with the same stem into one photo and uses the lightweight variant for
+thumbnails and the full-quality variant for detail views. Missing photos
+and failed image loads display a product placeholder.
