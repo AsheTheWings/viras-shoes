@@ -19,7 +19,7 @@ const geist = Geist({
 
 export const metadata: Metadata = {
   title: "Viras Shoes",
-  description: "Premium footwear by Viras. 6 handpicked styles, delivered to your door.",
+  description: "Discover the Viras footwear collection. Explore styles, find your size, and order your favorite pair.",
 };
 
 export default async function RootLayout({

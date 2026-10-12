@@ -1,365 +1,334 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
-import Image from "next/image";
-import { motion, AnimatePresence, LayoutGroup } from "motion/react";
-import { FaArrowLeftLong } from "react-icons/fa6";
-import { assetUrl } from "@/lib/supabase";
-import type { ShoeWithSizes } from "@/lib/types";
-import { OrderForm } from "./order-form";
-import { useIsDesktop } from "@/lib/hooks";
+import { useState } from "react";
+import {
+  ArrowDown,
+  ArrowUpRight,
+  Heart,
+  Search,
+  SlidersHorizontal,
+  X,
+  Mail,
+  Phone,
+} from "lucide-react";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { ProductDetail } from "@/components/product-detail";
+import { ShoePhoto } from "@/components/shoe-photo";
 import { useLocale } from "@/lib/locale-context";
+import {
+  availableSizes,
+  filterCatalog,
+  formatPrice,
+  type CatalogSort,
+} from "@/lib/catalog";
+import { useFavorites, useProductLink } from "@/lib/shop-preferences";
+import type { ShoeWithSizes } from "@/lib/types";
 
-interface ShoeGridProps {
-  shoes: ShoeWithSizes[];
-}
-
-const SPRING = { type: "spring" as const, stiffness: 300, damping: 18 };
-
-function CoverPlaceholder({ name }: { name: string }) {
-  return (
-    <div className="absolute inset-0 flex items-center justify-center bg-neutral-800 p-3">
-      <span className="text-center text-xs font-medium text-neutral-400">{name}</span>
-    </div>
+export function ShoeGrid({ shoes }: { shoes: ShoeWithSizes[] }) {
+  const { locale, t, dir } = useLocale();
+  const [query, setQuery] = useState("");
+  const [size, setSize] = useState<number | null>(null);
+  const [sort, setSort] = useState<CatalogSort>("featured");
+  const [favoritesOnly, setFavoritesOnly] = useState(false);
+  const { favorites, toggle } = useFavorites();
+  const { productId, close } = useProductLink();
+  const focused = shoes.find((shoe) => shoe.id === productId);
+  const featured =
+    shoes.find((shoe) => shoe.images.length && availableSizes(shoe).length) ??
+    shoes[0];
+  const visible = filterCatalog(shoes, {
+    query,
+    size,
+    sort,
+    favoritesOnly,
+    favorites,
+  });
+  const sizes = Array.from(new Set(shoes.flatMap(availableSizes))).sort(
+    (a, b) => a - b,
   );
-}
-
-export function ShoeGrid({ shoes }: ShoeGridProps) {
-  const isDesktop = useIsDesktop();
-  const { t, dir } = useLocale();
-  const isRtl = dir === "rtl";
-  const [focusedShoe, setFocusedShoe] = useState<ShoeWithSizes | null>(null);
-  const [heroIdx, setHeroIdx] = useState(0);
-
-  const handleShoeClick = useCallback(
-    (shoe: ShoeWithSizes) => {
-      if (focusedShoe?.id === shoe.id) return;
-      setFocusedShoe(shoe);
-      setHeroIdx(0);
-    },
-    [focusedShoe],
-  );
-
-  const handleClose = useCallback(() => {
-    setFocusedShoe(null);
-    setHeroIdx(0);
-  }, []);
-
-  /* Keyboard navigation — desktop only */
-  useEffect(() => {
-    if (!focusedShoe || !isDesktop) return;
-
-    const onKeyDown = (e: KeyboardEvent) => {
-      const idx = shoes.findIndex((s) => s.id === focusedShoe.id);
-      const photoCount = focusedShoe.images.length;
-
-      switch (e.key) {
-        case "ArrowUp": {
-          e.preventDefault();
-          const prev = shoes[(idx - 1 + shoes.length) % shoes.length];
-          setFocusedShoe(prev);
-          setHeroIdx(0);
-          break;
-        }
-        case "ArrowDown": {
-          e.preventDefault();
-          const next = shoes[(idx + 1) % shoes.length];
-          setFocusedShoe(next);
-          setHeroIdx(0);
-          break;
-        }
-        case "ArrowLeft": {
-          e.preventDefault();
-          if (photoCount > 0) setHeroIdx((i) => (i - 1 + photoCount) % photoCount);
-          break;
-        }
-        case "ArrowRight": {
-          e.preventDefault();
-          if (photoCount > 0) setHeroIdx((i) => (i + 1) % photoCount);
-          break;
-        }
-        case "Escape":
-          handleClose();
-          break;
-      }
-    };
-
-    window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
-  }, [focusedShoe, shoes, handleClose, isDesktop]);
-
-  /* ═══════════════════════════════════════════════
-     MOBILE
-     ═══════════════════════════════════════════════ */
-  if (!isDesktop) {
-    /* ── Mobile Grid ── */
-    if (!focusedShoe) {
-      return (
-        <div className="mx-auto h-full max-w-7xl px-3 py-3">
-          <div className="grid h-full auto-rows-fr grid-cols-2 gap-3">
-            {shoes.map((shoe) => (
-              <button
-                key={shoe.id}
-                onClick={() => handleShoeClick(shoe)}
-                className="group relative cursor-pointer overflow-hidden rounded-lg bg-muted"
-              >
-                {shoe.images[0]?.file ? (
-                  <Image
-                    src={assetUrl(shoe.images[0].file)}
-                    alt={shoe.name}
-                    fill
-                    className="object-cover"
-                    sizes="50vw"
-                    priority={shoe.item_number <= 4}
-                  />
-                ) : (
-                  <CoverPlaceholder name={shoe.name} />
-                )}
-                <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 to-transparent p-2.5">
-                  <p className="text-xs font-medium text-white">{shoe.name}</p>
-                </div>
-              </button>
-            ))}
-          </div>
-        </div>
-      );
-    }
-
-    /* ── Mobile Detail ── */
-    return (
-    <div className="flex h-full flex-col bg-black text-white" dir="ltr">
-        {/* Photo scroll + shoe selector — 2 columns */}
-        <div className="flex min-h-0 flex-1 gap-2 px-3">
-          {/* All photos — vertical scroll, no gap */}
-          <div className="flex-1 overflow-y-auto overscroll-contain scrollbar-thin">
-            {focusedShoe.images.length === 0 ? (
-              <div className="flex aspect-video w-full items-center justify-center bg-neutral-900 p-4">
-                <span className="text-center text-sm text-neutral-400">{focusedShoe.name}</span>
-              </div>
-            ) : null}
-            {focusedShoe.images.map((image, i) => (
-              <div
-                key={image.stem}
-                className="relative aspect-video w-full overflow-hidden"
-              >
-                <Image
-                  src={assetUrl(image.heroFile)}
-                  alt={`${focusedShoe.name} ${i + 1}`}
-                  fill
-                  className="object-cover"
-                  sizes="75vw"
-                />
-              </div>
-            ))}
-          </div>
-
-          {/* Shoe thumbnails column */}
-          <div className="flex w-16 shrink-0 flex-col justify-center gap-2 py-2 md:w-20">
-            {shoes.map((shoe) => (
-              <button
-                key={shoe.id}
-                onClick={() => handleShoeClick(shoe)}
-                className={`relative aspect-square overflow-hidden rounded-md transition-opacity ${
-                  focusedShoe.id === shoe.id
-                    ? "ring-2 ring-white"
-                    : "opacity-50 hover:opacity-100"
-                }`}
-              >
-                {shoe.images[0]?.file ? (
-                  <Image
-                    src={assetUrl(shoe.images[0].file)}
-                    alt={shoe.name}
-                    fill
-                    className="object-cover"
-                    sizes="64px"
-                  />
-                ) : (
-                  <CoverPlaceholder name={shoe.name} />
-                )}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Bottom: name + sizes + order — full viewport width */}
-        <div className="shrink-0 space-y-1.5 border-t border-white/10 px-4 py-3 pb-6">
-          <h2 className="text-sm font-bold py-2">{focusedShoe.name}</h2>
-          <OrderForm key={focusedShoe.id} shoe={focusedShoe} mobile />
-        </div>
-      </div>
-    );
+  const activeFilters =
+    query.trim() || size !== null || favoritesOnly || sort !== "featured";
+  function reset() {
+    setQuery("");
+    setSize(null);
+    setSort("featured");
+    setFavoritesOnly(false);
   }
 
-  /* ═══════════════════════════════════════════════
-     DESKTOP (unchanged)
-     ═══════════════════════════════════════════════ */
   return (
-    <LayoutGroup>
-      {/* Back button — fixed to viewport top-left */}
-      <AnimatePresence>
-        {focusedShoe && (
-          <motion.button
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            onClick={handleClose}
-            className="fixed left-8 top-[7rem] z-30 flex items-center gap-2 text-xs font-bold uppercase tracking-widest transition-colors hover:text-foreground"
-            dir="ltr"
+    <div className="storefront" dir={dir}>
+      <section className="shop-hero" aria-labelledby="hero-title">
+        <div className="hero-copy">
+          <p className="eyebrow">
+            <span className="small-rule" />
+            {t("shop.eyebrow")}
+          </p>
+          <h1 id="hero-title">
+            {t("shop.hero.line1")}
+            <br />
+            <span>{t("shop.hero.line2")}</span>
+          </h1>
+          <p className="hero-description">{t("shop.hero.description")}</p>
+          <a className="shop-button" href="#collection">
+            {t("shop.explore")}
+            <ArrowUpRight size={19} className="directional-icon" />
+          </a>
+          <a href="#collection" className="hero-scroll">
+            <ArrowDown size={15} />
+            {t("shop.collection")}
+          </a>
+        </div>
+        {featured && (
+          <a
+            href={`#shoe-${featured.id}`}
+            className="hero-art"
+            aria-label={`${t("shop.discover")} — ${featured.name}`}
           >
-            <FaArrowLeftLong className="h-4 w-6" />
-            <span>{t("detail.back")}</span>
-          </motion.button>
+            <span className="hero-watermark" aria-hidden="true">
+              V
+            </span>
+            <span className="hero-edition">
+              VIRAS / {String(featured.item_number).padStart(2, "0")}
+            </span>
+            <div className="hero-photo">
+              <ShoePhoto
+                shoe={featured}
+                hero
+                priority
+                sizes="(max-width: 800px) 100vw, 55vw"
+              />
+            </div>
+            <div className="hero-caption">
+              <div>
+                <span>{t("shop.featured")}</span>
+                <strong>{featured.name}</strong>
+              </div>
+              <span className="round-arrow">
+                <ArrowUpRight size={22} />
+              </span>
+            </div>
+          </a>
         )}
-      </AnimatePresence>
+      </section>
 
-      <div className={`mx-auto flex h-full max-w-7xl flex-col px-4 ${focusedShoe ? "pb-4 my-[-4px]" : "py-4"}`}>
-
-        <motion.div
-          layout
-          dir="ltr"
-          className={focusedShoe ? "flex h-full gap-4" : "h-full"}
-          transition={SPRING}
-        >
-          {/* ─── Detail Panel (fades in when focused) ─── */}
-          <AnimatePresence>
-            {focusedShoe && (
-              <motion.div
-                key="detail-panel"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.4, delay: 0.15 }}
-                className="relative min-w-0 flex-1 overflow-hidden rounded-lg"
+      <section
+        id="collection"
+        className="collection"
+        aria-labelledby="collection-title"
+      >
+        <div className="collection-heading">
+          <div>
+            <p className="eyebrow">VIRAS / {t("shop.collection")}</p>
+            <h2 id="collection-title">{t("shop.edit")}</h2>
+            <p>{t("shop.edit.description")}</p>
+          </div>
+          <span className="collection-count" aria-live="polite">
+            {visible.length.toString().padStart(2, "0")}{" "}
+            <span>{t("shop.results")}</span>
+          </span>
+        </div>
+        <div className="catalog-toolbar">
+          <label className="catalog-search">
+            <Search size={18} />
+            <input
+              type="search"
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder={t("shop.search")}
+              aria-label={t("shop.search")}
+            />
+            {query && (
+              <button
+                type="button"
+                onClick={() => setQuery("")}
+                aria-label={t("shop.reset")}
               >
-
-                  {/* Hero image */}
-                  <AnimatePresence mode="wait">
-                    <motion.div
-                      key={focusedShoe.images[heroIdx]?.stem ?? "empty"}
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      transition={{ duration: 0.2 }}
-                      className="absolute inset-0"
-                    >
-                      {focusedShoe.images[heroIdx]?.heroFile ? (
-                        <Image
-                          src={assetUrl(focusedShoe.images[heroIdx].heroFile)}
-                          alt={`${focusedShoe.name} ${heroIdx + 1}`}
-                          fill
-                          className="object-contain"
-                          sizes="80vw"
-                          priority
-                        />
-                      ) : (
-                        <div className="absolute inset-0 flex items-center justify-center bg-neutral-900">
-                          <span className="text-sm text-neutral-400">{focusedShoe.name}</span>
-                        </div>
-                      )}
-                    </motion.div>
-                  </AnimatePresence>
-
-                  {/* Bottom bar — thumbnails + details */}
-                  {/* dir="ltr" prevents inherited RTL from flipping flex-row-reverse */}
-                  <div dir="ltr" className="absolute inset-x-0 bottom-0 z-10 flex flex-row-reverse items-end justify-between bg-gradient-to-t from-black/50 to-transparent px-4 py-3">
-                    {/* Name + sizes + order */}
-                    <div className="flex items-center gap-3">
-                      <h2 className="text-lg font-bold leading-tight text-white">
-                        {focusedShoe.name}
-                      </h2>
-                      <OrderForm key={focusedShoe.id} shoe={focusedShoe} />
-                    </div>
-
-                    {/* Photo thumbnails */}
-                    <div className="flex gap-2">
-                      {focusedShoe.images.map((image, i) => (
-                        <button
-                          key={image.stem}
-                          onClick={() => setHeroIdx(i)}
-                          className={`relative h-12 w-12 overflow-hidden rounded-md border-2 transition-all sm:h-14 sm:w-14 ${
-                            heroIdx === i
-                              ? "border-white ring-2 ring-white/30"
-                              : "border-transparent opacity-70 hover:opacity-100"
-                          }`}
-                        >
-                          <Image
-                            src={assetUrl(image.file)}
-                            alt={`${focusedShoe.name} ${i + 1}`}
-                            fill
-                            className="object-cover"
-                            sizes="56px"
-                          />
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-              </motion.div>
+                <X size={16} />
+              </button>
             )}
-          </AnimatePresence>
-
-          {/* ─── Shoe Cards (always mounted, layout animates) ─── */}
-          <motion.div
-            layout
-            className={
-              focusedShoe
-                ? "flex w-20 shrink-0 flex-col justify-center gap-2 sm:w-24"
-                : "grid h-full auto-rows-fr grid-cols-3 gap-4 sm:gap-6"
-            }
-            transition={SPRING}
-          >
-            {shoes.map((shoe) => (
-              <motion.button
-                key={shoe.id}
-                layout
-                onClick={() => handleShoeClick(shoe)}
-                className={`relative overflow-hidden bg-muted ${
-                  focusedShoe
-                    ? `aspect-square rounded-md ${
-                        focusedShoe.id === shoe.id
-                          ? "ring-2 ring-foreground"
-                          : "opacity-60 hover:opacity-100"
-                      }`
-                    : "group cursor-pointer rounded-lg"
-                }`}
-                whileHover={!focusedShoe ? { scale: 1.03 } : undefined}
-                whileTap={!focusedShoe ? { scale: 0.98 } : undefined}
-                transition={SPRING}
+          </label>
+          <div className="catalog-controls">
+            <label className="catalog-select">
+              <SlidersHorizontal size={15} />
+              <select
+                value={size ?? ""}
+                onChange={(event) =>
+                  setSize(
+                    event.target.value ? Number(event.target.value) : null,
+                  )
+                }
+                aria-label={t("order.size")}
               >
-                {shoe.images[0]?.file ? (
-                  <Image
-                    src={assetUrl(shoe.images[0].file)}
-                    alt={shoe.name}
-                    fill
-                    className={`object-cover ${!focusedShoe ? "transition-transform duration-300 group-hover:scale-105" : ""}`}
-                    sizes={focusedShoe ? "96px" : "300px"}
-                    priority={shoe.item_number <= 3}
-                  />
-                ) : (
-                  <CoverPlaceholder name={shoe.name} />
-                )}
-
-                {/* Name/price overlay — fades out smoothly */}
-                <AnimatePresence>
-                  {!focusedShoe && (
-                    <motion.div
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      transition={{ duration: 0.2 }}
-                      className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 to-transparent p-3"
+                <option value="">{t("shop.allSizes")}</option>
+                {sizes.map((value) => (
+                  <option key={value} value={value}>
+                    EU {value}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="catalog-select">
+              <select
+                value={sort}
+                onChange={(event) => setSort(event.target.value as CatalogSort)}
+                aria-label={t("shop.sort")}
+              >
+                <option value="featured">{t("shop.sort.featured")}</option>
+                <option value="price-asc">{t("shop.sort.low")}</option>
+                <option value="price-desc">{t("shop.sort.high")}</option>
+                <option value="name">{t("shop.sort.name")}</option>
+              </select>
+            </label>
+            <button
+              className={`saved-filter ${favoritesOnly ? "is-active" : ""}`}
+              aria-pressed={favoritesOnly}
+              onClick={() => setFavoritesOnly(!favoritesOnly)}
+            >
+              <Heart size={16} fill={favoritesOnly ? "currentColor" : "none"} />
+              <span>{t("shop.favorites")}</span>
+              <span>{favorites.length}</span>
+            </button>
+          </div>
+        </div>
+        {activeFilters && (
+          <div className="filter-summary">
+            <button onClick={reset}>
+              <X size={13} />
+              {t("shop.reset")}
+            </button>
+            {size && <span>EU {size}</span>}
+          </div>
+        )}
+        {visible.length ? (
+          <div className="product-grid">
+            {visible.map((shoe) => {
+              const stockSizes = availableSizes(shoe);
+              const saved = favorites.includes(shoe.id);
+              return (
+                <article className="product-card" key={shoe.id}>
+                  <div className="product-image">
+                    <a
+                      href={`#shoe-${shoe.id}`}
+                      aria-label={`${t("shop.view")} — ${shoe.name}`}
                     >
-                      <p className="text-sm font-medium text-white">
-                        {shoe.name}
-                      </p>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </motion.button>
-            ))}
-          </motion.div>
-        </motion.div>
-      </div>
-    </LayoutGroup>
+                      <ShoePhoto shoe={shoe} />
+                      <span className="product-view">
+                        {t("shop.view")}
+                        <ArrowUpRight size={17} />
+                      </span>
+                    </a>
+                    <span
+                      className={`stock-badge ${stockSizes.length ? "" : "sold-out"}`}
+                    >
+                      <span />
+                      {t(stockSizes.length ? "shop.available" : "shop.soldout")}
+                    </span>
+                    <button
+                      className={`favorite-button ${saved ? "is-saved" : ""}`}
+                      aria-label={`${t(saved ? "shop.unsave" : "shop.save")} — ${shoe.name}`}
+                      aria-pressed={saved}
+                      onClick={() => toggle(shoe.id)}
+                    >
+                      <Heart
+                        size={19}
+                        strokeWidth={1.6}
+                        fill={saved ? "currentColor" : "none"}
+                      />
+                    </button>
+                  </div>
+                  <div className="product-info">
+                    <a href={`#shoe-${shoe.id}`}>
+                      <span className="product-number">
+                        VIRAS / {String(shoe.item_number).padStart(2, "0")}
+                      </span>
+                      <h3>{shoe.name}</h3>
+                    </a>
+                    <span className="product-price" dir="ltr">
+                      {formatPrice(shoe.price, locale)}
+                    </span>
+                  </div>
+                  <div className="product-sizes" aria-label={t("order.size")}>
+                    {stockSizes.length ? (
+                      <>
+                        <span>EU</span>
+                        {stockSizes.map((value) => (
+                          <span key={value}>{value}</span>
+                        ))}
+                      </>
+                    ) : (
+                      <span>{t("shop.soldout")}</span>
+                    )}
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="catalog-empty">
+            <Search size={32} strokeWidth={1} />
+            <h3>{t("shop.empty")}</h3>
+            <p>{t("shop.empty.description")}</p>
+            <button className="shop-button" onClick={reset}>
+              {t("shop.reset")}
+              <ArrowUpRight size={17} />
+            </button>
+          </div>
+        )}
+      </section>
+      <section id="contact" className="contact-section">
+        <div>
+          <p className="eyebrow">VIRAS / {t("shop.contact")}</p>
+          <h2>{t("shop.help")}</h2>
+          <p>{t("shop.help.description")}</p>
+        </div>
+        <div className="contact-links">
+          <a href="tel:+212709722077">
+            <Phone size={19} />
+            <span>
+              {t("shop.call")}
+              <strong dir="ltr">+212 709 722 077</strong>
+            </span>
+            <ArrowUpRight size={18} />
+          </a>
+          <a href="mailto:viras.shoes@outlook.com">
+            <Mail size={19} />
+            <span>
+              {t("shop.email")}
+              <strong>viras.shoes@outlook.com</strong>
+            </span>
+            <ArrowUpRight size={18} />
+          </a>
+        </div>
+      </section>
+      <footer className="shop-footer">
+        <span className="wordmark">
+          VIRAS<span>®</span>
+        </span>
+        <p>{t("shop.footer")}</p>
+        <span>© {new Date().getFullYear()} VIRAS</span>
+      </footer>
+      <Dialog
+        open={!!focused}
+        onOpenChange={(open) => {
+          if (!open) close();
+        }}
+      >
+        {focused && (
+          <DialogContent
+            showCloseButton={false}
+            className="product-dialog"
+            dir={dir}
+          >
+            <ProductDetail
+              key={focused.id}
+              shoe={focused}
+              onClose={close}
+              saved={favorites.includes(focused.id)}
+              onToggleFavorite={() => toggle(focused.id)}
+            />
+          </DialogContent>
+        )}
+      </Dialog>
+    </div>
   );
 }
