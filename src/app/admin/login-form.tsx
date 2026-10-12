@@ -54,7 +54,14 @@ export function AdminLoginForm({
     e.preventDefault();
     setPending(true);
     setError(null);
-    const res = await loginAdmin(code);
+    let res: Awaited<ReturnType<typeof loginAdmin>>;
+    try {
+      res = await loginAdmin(code);
+    } catch {
+      setError("failed");
+      setPending(false);
+      return;
+    }
     if (res.ok) {
       setCode("");
       router.refresh();
@@ -152,7 +159,9 @@ export function AdminLoginForm({
                 ? t("admin.signin.locked", locale)
                 : error === "unconfigured"
                   ? t("admin.signin.unconfigured", locale)
-                  : t("admin.signin.wrong", locale)}
+                  : error === "failed"
+                    ? t("admin.error.failed", locale)
+                    : t("admin.signin.wrong", locale)}
             </p>
           ) : null}
           <Button

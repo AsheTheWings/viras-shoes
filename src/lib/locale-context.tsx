@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useEffect, useMemo } from "react";
+import { createContext, useContext, useMemo } from "react";
 import { usePathname } from "next/navigation";
 import {
   type Locale,
@@ -27,14 +27,6 @@ export function LocaleProvider({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const locale = localeFromPath(pathname);
   const dir = isRtl(locale) ? "rtl" : "ltr";
-
-  // Keep the HTML element in sync with the active locale so that
-  // CSS logical properties and flex direction behave correctly after
-  // client-side navigation (server sets it once; we maintain it here).
-  useEffect(() => {
-    document.documentElement.dir = dir;
-    document.documentElement.lang = locale;
-  }, [locale, dir]);
 
   const value = useMemo<LocaleContextValue>(
     () => ({

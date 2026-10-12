@@ -1,5 +1,6 @@
 "use client";
 
+import { useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { LOCALES, LOCALE_LABELS, type Locale } from "@/lib/i18n";
 import { rememberLocale } from "@/lib/locale-cookie";
@@ -12,11 +13,14 @@ export function AdminLocaleSwitcher({
   tone: "dark" | "light";
 }) {
   const router = useRouter();
+  const [pending, start] = useTransition();
 
-  async function pick(target: Locale) {
+  function pick(target: Locale) {
     if (target === locale) return;
-    await rememberLocale(target);
-    router.refresh();
+    start(async () => {
+      await rememberLocale(target);
+      router.refresh();
+    });
   }
 
   const active =
@@ -30,6 +34,8 @@ export function AdminLocaleSwitcher({
 
   return (
     <div
+      role="group"
+      aria-label="Language / Langue / اللغة"
       className={
         tone === "dark"
           ? "flex items-center gap-0.5 rounded-full border border-white/15 p-0.5"
@@ -39,8 +45,12 @@ export function AdminLocaleSwitcher({
       {LOCALES.map((l) => (
         <button
           key={l}
-          onClick={() => void pick(l)}
-          className={`rounded-full px-2 py-0.5 text-[11px] transition-colors ${l === locale ? active : idle}`}
+          type="button"
+          lang={l}
+          aria-pressed={l === locale}
+          disabled={pending}
+          onClick={() => pick(l)}
+          className={`rounded-full px-2.5 py-1 text-xs transition-colors disabled:opacity-60 ${l === locale ? active : idle}`}
         >
           {LOCALE_LABELS[l]}
         </button>
