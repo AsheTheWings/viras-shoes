@@ -1218,3 +1218,26 @@ button:disabled {
     height: 160px;
   }
 }
+
+[dir="rtl"] .storefront,
+[dir="rtl"].product-dialog,
+[dir="rtl"].checkout-dialog,
+html[lang="ar"] .header-inner {
+  font-family: var(--font-arabic), sans-serif;
+}
+[dir="rtl"] .hero-copy h1,
+[dir="rtl"] .collection-heading h2,
+[dir="rtl"] .contact-section h2,
+[dir="rtl"] .detail-title[data-slot="dialog-title"],
+[dir="rtl"] .checkout-title[data-slot="dialog-title"] {
+  font-family: var(--font-arabic), sans-serif;
+  letter-spacing: 0;
+}
+.checkout-form input {
+  font-size: 16px;
+}
+@media (max-width: 480px) {
+  .catalog-search input {
+    font-size: 16px;
+  }
+}

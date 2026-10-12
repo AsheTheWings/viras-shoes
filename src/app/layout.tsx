@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { headers } from "next/headers";
-import { Poppins, Geist } from "next/font/google";
+import { Poppins, Geist, Noto_Sans_Arabic } from "next/font/google";
 import { LocaleProvider } from "@/lib/locale-context";
 import { HtmlLangSync } from "@/components/html-lang-sync";
 import { getInitialLocale, isRtl } from "@/lib/i18n";
@@ -17,9 +17,16 @@ const geist = Geist({
   subsets: ["latin"],
 });
 
+const arabic = Noto_Sans_Arabic({
+  variable: "--font-arabic",
+  subsets: ["arabic"],
+  weight: ["400", "500", "600", "700"],
+});
+
 export const metadata: Metadata = {
   title: "Viras Shoes",
-  description: "Discover the Viras footwear collection. Explore styles, find your size, and order your favorite pair.",
+  description:
+    "Discover the Viras footwear collection. Explore styles, find your size, and order your favorite pair.",
 };
 
 export default async function RootLayout({
@@ -33,9 +40,11 @@ export default async function RootLayout({
 
   return (
     <html lang={initialLocale} dir={initialDir}>
-      <body className={`${poppins.variable} ${geist.variable} font-sans antialiased`}>
+      <body
+        className={`${poppins.variable} ${geist.variable} ${arabic.variable} font-sans antialiased`}
+      >
         <LocaleProvider>
-        <HtmlLangSync />
+          <HtmlLangSync />
           {children}
         </LocaleProvider>
       </body>
