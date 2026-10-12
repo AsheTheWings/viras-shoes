@@ -315,6 +315,11 @@ export const translations = {
     en: "Admin code",
     fr: "Code admin",
   },
+  "admin.signin.hint": {
+    ar: "حتى 8 أحرف أو أرقام لاتينية، مع مراعاة حالة الأحرف.",
+    en: "Up to 8 letters or numbers. Case-sensitive.",
+    fr: "Jusqu’à 8 lettres ou chiffres. Sensible à la casse.",
+  },
   "admin.signin.submit": {
     ar: "دخول",
     en: "Unlock",

@@ -1,13 +1,25 @@
 // Server-only: authentication helpers for the /admin area.
 // Never import this module from a client component.
-import { createHash, createHmac, randomBytes, timingSafeEqual } from "node:crypto";
+import {
+  createHash,
+  createHmac,
+  randomBytes,
+  timingSafeEqual,
+} from "node:crypto";
 
 export const ADMIN_COOKIE = "viras_admin";
 export const SESSION_TTL_SECONDS = 7 * 24 * 60 * 60;
+export const ADMIN_CODE_MAX_LENGTH = 8;
 
+// Admin codes are case-sensitive and contain 1 to 8 ASCII letters or digits.
+export function isValidAdminCode(code: string): boolean {
+  return /^[A-Za-z0-9]{1,8}$/.test(code);
+}
+
+// A configured code outside the allowed format leaves sign-in unconfigured.
 export function getAdminCode(): string | null {
   const code = process.env.ADMIN_CODE;
-  return code && code.length > 0 ? code : null;
+  return code && isValidAdminCode(code) ? code : null;
 }
 
 function hashCode(code: string): Buffer {
@@ -17,17 +29,32 @@ function hashCode(code: string): Buffer {
 // Constant-time comparison that also hides the code length.
 export function verifyCode(input: string): boolean {
   const expected = getAdminCode();
-  if (!expected) return false;
+  if (!expected || typeof input !== "string" || !isValidAdminCode(input))
+    return false;
   const a = hashCode(input);
   const b = hashCode(expected);
   return timingSafeEqual(a, b);
 }
 
-function signSession(sid: string, exp: number, code: string): string {
-  return createHmac("sha256", code).update(`${sid}.${exp}`, "utf8").digest("hex");
+// The signing key mixes in the server-only service-role key so a session
+// cookie cannot be used to brute-force the short admin code offline.
+function sessionKey(code: string): Buffer {
+  return createHash("sha256")
+    .update(
+      `viras-admin-session\0${code}\0${process.env.SUPABASE_SERVICE_ROLE_KEY ?? ""}`,
+      "utf8",
+    )
+    .digest();
 }
 
-// Stateless session: sid.exp.hmac. Rotating ADMIN_CODE invalidates all sessions.
+function signSession(sid: string, exp: number, code: string): string {
+  return createHmac("sha256", sessionKey(code))
+    .update(`${sid}.${exp}`, "utf8")
+    .digest("hex");
+}
+
+// Stateless session: sid.exp.hmac. Rotating ADMIN_CODE or the service-role key
+// invalidates all sessions.
 export function createSession(): string {
   const code = getAdminCode();
   if (!code) throw new Error("ADMIN_CODE is not configured");
@@ -44,7 +71,8 @@ export function verifySession(value: string | undefined | null): boolean {
   const [sid, expRaw, sig] = parts;
   if (!/^[0-9a-f]{32}$/.test(sid)) return false;
   const exp = Number(expRaw);
-  if (!Number.isInteger(exp) || exp <= Math.floor(Date.now() / 1000)) return false;
+  if (!Number.isInteger(exp) || exp <= Math.floor(Date.now() / 1000))
+    return false;
   const expected = signSession(sid, exp, code);
   const a = Buffer.from(sig, "utf8");
   const b = Buffer.from(expected, "utf8");

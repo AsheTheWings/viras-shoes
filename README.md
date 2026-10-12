@@ -33,7 +33,7 @@ process environment or an untracked Next.js environment file:
 | `NEXT_PUBLIC_SUPABASE_URL`      | Supabase project URL                              |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Public Supabase client key                        |
 | `SUPABASE_SERVICE_ROLE_KEY`     | Server-side admin and image-storage access        |
-| `ADMIN_CODE`                    | Single-admin sign-in code                         |
+| `ADMIN_CODE`                    | Single-admin sign-in code, 1–8 letters or digits  |
 | `TELEGRAM_BOT_TOKEN`            | Optional server-side order notification bot token |
 | `TELEGRAM_CHAT_ID`              | Optional order notification destination           |
 
@@ -72,9 +72,13 @@ products, stock units, and sizes with one or two units remaining. Orders can
 be searched by customer, contact details, product name, or order ID and
 filtered by their stored status.
 
-Admin data access uses the service-role key in server code. Rotating the admin
-code invalidates existing sessions. The orders view displays the latest 500
-orders, and its search and summaries apply to that loaded set.
+The admin code is case-sensitive and contains 1 to 8 ASCII letters or digits;
+a configured value in any other format leaves sign-in unavailable. Each client
+IP gets eight wrong attempts per 10 minutes. Admin data access uses the
+service-role key in server code, and session signatures combine both secrets,
+so rotating the admin code or the service-role key invalidates existing
+sessions. The orders view displays the latest 500 orders, and its search and
+summaries apply to that loaded set.
 
 Product photos live in the Supabase `assets` bucket, with filenames keyed by
 item number. WebP uploads are limited to 5 MB per image. The gallery groups
