@@ -1,43 +1,40 @@
 "use server";
 
 import { supabase } from "@/lib/supabase";
-
-interface OrderInput {
-  shoe_id: number;
-  size: number;
-  customer_name: string;
-  customer_phone: string;
-  customer_email: string;
-}
-
-const TELEGRAM_BOT_TOKEN = "8537894571:AAFupE29aEW3oviSIKhzwUk_EeM_M9omyN0";
-const TELEGRAM_CHAT_ID = "8584666483";
+import {
+  normalizePhone,
+  validOrder,
+  type OrderInput,
+} from "@/lib/order-validation";
 
 async function sendTelegramNotification(order: OrderInput, shoeName: string) {
+  const token = process.env.TELEGRAM_BOT_TOKEN;
+  const chatId = process.env.TELEGRAM_CHAT_ID;
+  if (!token || !chatId) return;
   const message = `
-🛒 *New Order Received!*
+🛒 New Order Received!
 
-👟 *Product:* ${shoeName}
-📏 *Size:* ${order.size}
-👤 *Customer:* ${order.customer_name}
-📱 *Phone:* ${order.customer_phone}
-📧 *Email:* ${order.customer_email || "N/A"}
+👟 Product: ${shoeName}
+📏 Size: ${order.size}
+👤 Customer: ${order.customer_name}
+📱 Phone: ${order.customer_phone}
+📧 Email: ${order.customer_email || "N/A"}
 
-⏰ *Time:* ${new Date().toLocaleString("en-GB", { timeZone: "Africa/Casablanca" })}
+⏰ Time: ${new Date().toLocaleString("en-GB", { timeZone: "Africa/Casablanca" })}
   `.trim();
 
   try {
     const response = await fetch(
-      `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`,
+      `https://api.telegram.org/bot${token}/sendMessage`,
       {
         method: "POST",
+        signal: AbortSignal.timeout(5000),
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          chat_id: TELEGRAM_CHAT_ID,
+          chat_id: chatId,
           text: message,
-          parse_mode: "Markdown",
         }),
-      }
+      },
     );
 
     if (!response.ok) {
@@ -52,10 +49,13 @@ async function sendTelegramNotification(order: OrderInput, shoeName: string) {
 }
 
 export async function placeOrder(input: OrderInput) {
-  // Validate size range server-side
-  if (input.size < 39 || input.size > 45) {
-    return { success: false, error: "Invalid size" };
-  }
+  if (!validOrder(input)) return { success: false, error: "invalid" };
+  input = {
+    ...input,
+    customer_name: input.customer_name.trim(),
+    customer_phone: normalizePhone(input.customer_phone),
+    customer_email: input.customer_email.trim(),
+  };
 
   // Check stock
   const { data: sizeRow, error: sizeError } = await supabase
@@ -66,11 +66,11 @@ export async function placeOrder(input: OrderInput) {
     .single();
 
   if (sizeError || !sizeRow) {
-    return { success: false, error: "Size not found" };
+    return { success: false, error: "stock" };
   }
 
   if (sizeRow.stock <= 0) {
-    return { success: false, error: "Out of stock for this size" };
+    return { success: false, error: "stock" };
   }
 
   // Get shoe name for notification
@@ -90,7 +90,7 @@ export async function placeOrder(input: OrderInput) {
   });
 
   if (orderError) {
-    return { success: false, error: "Failed to place order" };
+    return { success: false, error: "failed" };
   }
 
   // Decrement stock
