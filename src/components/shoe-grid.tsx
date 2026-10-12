@@ -14,6 +14,7 @@ import {
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { ProductDetail } from "@/components/product-detail";
 import { ShoePhoto } from "@/components/shoe-photo";
+import { SocialLinksList } from "@/components/social-links";
 import { useLocale } from "@/lib/locale-context";
 import {
   availableSizes,
@@ -22,9 +23,16 @@ import {
   type CatalogSort,
 } from "@/lib/catalog";
 import { useFavorites, useProductLink } from "@/lib/shop-preferences";
+import type { SocialLinks } from "@/lib/social";
 import type { ShoeWithSizes } from "@/lib/types";
 
-export function ShoeGrid({ shoes }: { shoes: ShoeWithSizes[] }) {
+export function ShoeGrid({
+  shoes,
+  social,
+}: {
+  shoes: ShoeWithSizes[];
+  social: SocialLinks;
+}) {
   const { locale, t, dir } = useLocale();
   const [query, setQuery] = useState("");
   const [size, setSize] = useState<number | null>(null);
@@ -280,6 +288,13 @@ export function ShoeGrid({ shoes }: { shoes: ShoeWithSizes[] }) {
           <p className="eyebrow">VIRAS / {t("shop.contact")}</p>
           <h2>{t("shop.help")}</h2>
           <p>{t("shop.help.description")}</p>
+          <SocialLinksList
+            links={social}
+            label={t("shop.follow")}
+            linkLabel={t("shop.follow.on")}
+            newTab={t("shop.newTab")}
+            className="social-links"
+          />
         </div>
         <div className="contact-links">
           <a href="tel:+212709722077">
@@ -305,7 +320,16 @@ export function ShoeGrid({ shoes }: { shoes: ShoeWithSizes[] }) {
           VIRAS<span>®</span>
         </span>
         <p>{t("shop.footer")}</p>
-        <span>© {new Date().getFullYear()} VIRAS</span>
+        <div className="footer-end">
+          <SocialLinksList
+            links={social}
+            label={t("shop.follow")}
+            linkLabel={t("shop.follow.on")}
+            newTab={t("shop.newTab")}
+            className="social-links is-compact"
+          />
+          <span>© {new Date().getFullYear()} VIRAS</span>
+        </div>
       </footer>
       <Dialog
         open={!!focused}

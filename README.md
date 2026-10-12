@@ -52,7 +52,8 @@ For an optimized build, run `npm run build` and then
 
 Run `npm run lint`, `npx tsc --noEmit`, and `npm run build` for static and build
 checks. Pure unit tests for catalog filtering, sorting, price formatting,
-and order validation run with Node.js 22.18 or later:
+order validation, photo naming, and social links run with Node.js 22.18 or
+later:
 
 ```sh
 node --experimental-strip-types --test tests/*.unit.test.mts
@@ -67,10 +68,16 @@ writes an order and changes stock.
 ## Admin
 
 Sign in at `/admin` with the admin code to manage orders, product details,
-available sizes, stock, and galleries. The dashboard summarizes orders,
-products, stock units, and sizes with one or two units remaining. Orders can
-be searched by customer, contact details, product name, or order ID and
-filtered by their stored status.
+available sizes, stock, photos, and the shop's social media accounts. The
+admin uses the language chosen with its AR/EN/FR switcher, including
+validation and error messages. The dashboard summarizes orders, products,
+stock units, and sizes with one or two units remaining. Orders can be
+searched by customer, contact details, product name, or order ID, filtered
+by status, and moved through pending, confirmed, shipped, delivered, and
+cancelled.
+
+A shoe that has orders cannot be deleted; delete its orders first or set its
+stock to 0. Deleting a shoe also removes its sizes and photos.
 
 The admin code is case-sensitive and contains 1 to 8 ASCII letters or digits;
 a configured value in any other format leaves sign-in unavailable. Each client
@@ -80,8 +87,24 @@ so rotating the admin code or the service-role key invalidates existing
 sessions. The orders view displays the latest 500 orders, and its search and
 summaries apply to that loaded set.
 
+Each shoe has one photo slot per side, shown in the shop in this order: outer
+side, pair at an angle, front, back, inner side, top, sole, and worn. The
+first photo present is the cover. Any number of additional photos follow the
+sides. Uploads accept JPEG, PNG, WebP, or AVIF up to 10 MB; the server
+re-encodes each as an upright WebP of at most 2000 px. Uploading to a filled
+side replaces its photo.
+
 Product photos live in the Supabase `assets` bucket, with filenames keyed by
-item number. WebP uploads are limited to 5 MB per image. The gallery groups
-files with the same stem into one photo and uses the lightweight variant for
-thumbnails and the full-quality variant for detail views. Missing photos
-and failed image loads display a product placeholder.
+item number: `item-<n>-<side>[-v<token>]` for sides and `item-<n>-<other>`
+for additional photos. Every upload gets a new filename, so cached copies
+never show a replaced photo. The gallery groups files with the same stem into
+one photo and uses the lightweight variant for thumbnails and the
+full-quality variant for detail views. Missing photos and failed image loads
+display a product placeholder.
+
+Social media accounts (Instagram, Facebook, TikTok, WhatsApp, YouTube,
+Snapchat, and X) accept a profile link or `@username`; WhatsApp also accepts
+a phone number, and Moroccan local numbers get the `212` prefix. Links are
+stored as canonical `https` URLs in `settings/site.json` in the `assets`
+bucket and appear as icons in the shop's contact section and footer. Empty
+fields are hidden.

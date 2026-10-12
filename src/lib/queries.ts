@@ -1,5 +1,6 @@
 import { supabase } from "./supabase";
-import { listShoeImagesByItem } from "./shoe-images";
+import { listShoeImagesByItem, readSiteSettings } from "./shoe-images";
+import type { SocialLinks } from "./social";
 import type { GalleryImage, ShoeWithSizes } from "./types";
 
 export async function getShoes(): Promise<ShoeWithSizes[]> {
@@ -31,4 +32,13 @@ export async function getShoes(): Promise<ShoeWithSizes[]> {
     sizes: sizes.filter((s) => s.shoe_id === shoe.id),
     images: imagesByItem[shoe.item_number] ?? [],
   }));
+}
+
+/** Social profiles for the shop; none when settings are unavailable. */
+export async function getSocialLinks(): Promise<SocialLinks> {
+  try {
+    return (await readSiteSettings()).social;
+  } catch {
+    return {};
+  }
 }

@@ -5,6 +5,7 @@ import Image from "next/image";
 import { Footprints } from "lucide-react";
 import { assetUrl } from "@/lib/supabase";
 import { useLocale } from "@/lib/locale-context";
+import type { TranslationKey } from "@/lib/i18n";
 import type { ShoeWithSizes } from "@/lib/types";
 
 export function ShoePhoto({
@@ -35,7 +36,11 @@ export function ShoePhoto({
   return (
     <Image
       src={source}
-      alt={`${shoe.name} — ${t("shop.photo")} ${index + 1}`}
+      alt={`${shoe.name} — ${
+        photo.side
+          ? t(`photo.side.${photo.side}` as TranslationKey)
+          : `${t("shop.photo")} ${index + 1}`
+      }`}
       fill
       sizes={sizes}
       preload={priority}

@@ -27,6 +27,18 @@ export interface ShoeWithSizes extends Shoe {
  */
 export interface GalleryImage {
   stem: string;
+  /** Angle this photo shows, or null for an additional photo. */
+  side: PhotoSide | null;
   file: string;
   heroFile: string;
 }
+
+export type PhotoSide =
+  | "main"
+  | "standard"
+  | "front"
+  | "back"
+  | "inner"
+  | "top"
+  | "sole"
+  | "worn";

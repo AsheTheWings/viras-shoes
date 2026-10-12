@@ -212,6 +212,30 @@ export const translations = {
     en: "A good day starts with a good pair.",
     fr: "Une belle journée commence par une belle paire.",
   },
+  "shop.follow": {
+    ar: "تابعنا",
+    en: "Follow us",
+    fr: "Suivez-nous",
+  },
+  "shop.follow.on": {
+    ar: "تابعنا على",
+    en: "Follow us on",
+    fr: "Suivez-nous sur",
+  },
+  "shop.newTab": {
+    ar: "(يفتح في علامة تبويب جديدة)",
+    en: "(opens in a new tab)",
+    fr: "(s’ouvre dans un nouvel onglet)",
+  },
+  // Photo sides
+  "photo.side.main": { ar: "الجانب الخارجي", en: "Outer side", fr: "Profil extérieur" },
+  "photo.side.standard": { ar: "الزوج بزاوية", en: "Pair at an angle", fr: "Paire de trois-quarts" },
+  "photo.side.front": { ar: "الأمام", en: "Front", fr: "Avant" },
+  "photo.side.back": { ar: "الخلف (الكعب)", en: "Back (heel)", fr: "Arrière (talon)" },
+  "photo.side.inner": { ar: "الجانب الداخلي", en: "Inner side", fr: "Profil intérieur" },
+  "photo.side.top": { ar: "من الأعلى", en: "Top", fr: "Dessus" },
+  "photo.side.sole": { ar: "النعل", en: "Sole", fr: "Semelle" },
+  "photo.side.worn": { ar: "عند الارتداء", en: "Worn", fr: "Porté" },
   "shop.skip": {
     ar: "انتقل إلى المجموعة",
     en: "Skip to collection",
@@ -446,11 +470,6 @@ export const translations = {
     en: "Sign out",
     fr: "Déconnexion",
   },
-  "admin.action.failed": {
-    ar: "تعذّر تنفيذ العملية. حاول مجدداً.",
-    en: "Something went wrong. Try again.",
-    fr: "Échec de l'opération. Réessayez.",
-  },
   "admin.notconfigured.title": {
     ar: "قاعدة بيانات الإدارة غير مهيأة",
     en: "Admin database is not configured",
@@ -542,9 +561,9 @@ export const translations = {
     fr: "Nom",
   },
   "admin.shoes.price": {
-    ar: "السعر",
-    en: "Price",
-    fr: "Prix",
+    ar: "السعر (درهم)",
+    en: "Price (MAD)",
+    fr: "Prix (MAD)",
   },
   "admin.shoes.description": {
     ar: "الوصف",
@@ -609,7 +628,7 @@ export const translations = {
   "admin.shoes.addSize": {
     ar: "إضافة مقاس",
     en: "Add size",
-    fr: "Ajouter",
+    fr: "Ajouter la taille",
   },
   "admin.shoes.save": {
     ar: "حفظ",
@@ -626,11 +645,6 @@ export const translations = {
     en: "Photos",
     fr: "Photos",
   },
-  "admin.shoes.noPhotos": {
-    ar: "لا توجد صور بعد — ارفع الأولى.",
-    en: "No photos yet — upload the first one.",
-    fr: "Aucune photo — envoyez la première.",
-  },
   "admin.shoes.addPhotos": {
     ar: "إضافة صور",
     en: "Add photos",
@@ -641,15 +655,201 @@ export const translations = {
     en: "Uploading…",
     fr: "Envoi…",
   },
-  "admin.shoes.upload": {
-    ar: "رفع",
-    en: "Upload",
-    fr: "Envoyer",
-  },
   "admin.shoes.delete": {
     ar: "حذف",
     en: "Delete",
     fr: "Supprimer",
+  },
+  "admin.title": {
+    ar: "لوحة الإدارة",
+    en: "Admin",
+    fr: "Administration",
+  },
+  "admin.tabs.social": {
+    ar: "التواصل الاجتماعي",
+    en: "Social media",
+    fr: "Réseaux sociaux",
+  },
+  "admin.orders.status.pending": { ar: "قيد الانتظار", en: "Pending", fr: "En attente" },
+  "admin.orders.status.confirmed": { ar: "مؤكد", en: "Confirmed", fr: "Confirmée" },
+  "admin.orders.status.shipped": { ar: "تم الشحن", en: "Shipped", fr: "Expédiée" },
+  "admin.orders.status.delivered": { ar: "تم التسليم", en: "Delivered", fr: "Livrée" },
+  "admin.orders.status.cancelled": { ar: "ملغى", en: "Cancelled", fr: "Annulée" },
+  "admin.shoes.sides": {
+    ar: "صور كل جانب",
+    en: "Photos of each side",
+    fr: "Photos de chaque côté",
+  },
+  "admin.shoes.sidesHint": {
+    ar: "صور JPEG أو PNG أو WebP حتى 10 ميغابايت. تُحوَّل تلقائياً إلى WebP. تظهر الصور في المتجر بهذا الترتيب.",
+    en: "JPEG, PNG, or WebP up to 10 MB, converted to WebP automatically. The shop shows photos in this order.",
+    fr: "JPEG, PNG ou WebP jusqu’à 10 Mo, convertis automatiquement en WebP. La boutique affiche les photos dans cet ordre.",
+  },
+  "admin.shoes.firstPhoto": {
+    ar: "الصورة الرئيسية",
+    en: "Cover photo",
+    fr: "Photo principale",
+  },
+  "admin.shoes.emptySide": {
+    ar: "لا توجد صورة",
+    en: "No photo",
+    fr: "Aucune photo",
+  },
+  "admin.shoes.choosePhoto": {
+    ar: "رفع صورة",
+    en: "Upload photo",
+    fr: "Envoyer une photo",
+  },
+  "admin.shoes.replacePhoto": {
+    ar: "استبدال",
+    en: "Replace",
+    fr: "Remplacer",
+  },
+  "admin.shoes.extraPhotos": {
+    ar: "صور إضافية",
+    en: "Additional photos",
+    fr: "Photos supplémentaires",
+  },
+  "admin.shoes.noExtras": {
+    ar: "لا توجد صور إضافية.",
+    en: "No additional photos.",
+    fr: "Aucune photo supplémentaire.",
+  },
+  "admin.shoes.uploadedCount": {
+    ar: "تم رفع",
+    en: "Uploaded",
+    fr: "Envoyées",
+  },
+  "admin.shoes.deleteShoeHint": {
+    ar: "يحذف الحذاء ومقاساته وصوره نهائياً.",
+    en: "Permanently deletes the shoe, its sizes, and its photos.",
+    fr: "Supprime définitivement la chaussure, ses tailles et ses photos.",
+  },
+  "admin.saved": {
+    ar: "تم الحفظ",
+    en: "Saved",
+    fr: "Enregistré",
+  },
+  "admin.social.title": {
+    ar: "حسابات التواصل الاجتماعي",
+    en: "Social media accounts",
+    fr: "Comptes de réseaux sociaux",
+  },
+  "admin.social.hint": {
+    ar: "أدخل رابط الصفحة أو اسم المستخدم (@الاسم). لواتساب يمكنك إدخال رقم الهاتف. اترك الحقل فارغاً لإخفائه من المتجر.",
+    en: "Enter a profile link or @username. For WhatsApp you can enter a phone number. Leave a field empty to hide it from the shop.",
+    fr: "Saisissez un lien de profil ou un @identifiant. Pour WhatsApp, un numéro de téléphone suffit. Laissez un champ vide pour le masquer de la boutique.",
+  },
+  "admin.social.save": {
+    ar: "حفظ الحسابات",
+    en: "Save accounts",
+    fr: "Enregistrer les comptes",
+  },
+  "admin.social.invalid": {
+    ar: "رابط أو اسم مستخدم غير صالح لهذه المنصة",
+    en: "Not a valid link or username for this platform",
+    fr: "Lien ou identifiant invalide pour cette plateforme",
+  },
+  "admin.social.opens": {
+    ar: "يفتح",
+    en: "Opens",
+    fr: "Ouvre",
+  },
+  "admin.social.shown": {
+    ar: "يظهر في قسم التواصل وتذييل المتجر.",
+    en: "Shown in the shop’s contact section and footer.",
+    fr: "Affiché dans la section contact et le pied de page de la boutique.",
+  },
+  // Admin errors
+  "admin.error.not_signed_in": {
+    ar: "انتهت الجلسة. سجّل الدخول مجدداً.",
+    en: "Your session ended. Sign in again.",
+    fr: "Votre session a expiré. Reconnectez-vous.",
+  },
+  "admin.error.not_configured": {
+    ar: "قاعدة بيانات الإدارة غير مهيأة على هذا الخادم.",
+    en: "Admin database access is not configured on this server.",
+    fr: "L’accès à la base admin n’est pas configuré sur ce serveur.",
+  },
+  "admin.error.name_empty": {
+    ar: "أدخل اسماً.",
+    en: "Enter a name.",
+    fr: "Saisissez un nom.",
+  },
+  "admin.error.price_invalid": {
+    ar: "يجب أن يكون السعر رقماً يساوي 0 أو أكثر.",
+    en: "Price must be a number of 0 or more.",
+    fr: "Le prix doit être un nombre supérieur ou égal à 0.",
+  },
+  "admin.error.item_number_invalid": {
+    ar: "رقم الصنف يجب أن يكون عدداً صحيحاً موجباً.",
+    en: "Item number must be a positive whole number.",
+    fr: "Le numéro d’article doit être un entier positif.",
+  },
+  "admin.error.item_number_taken": {
+    ar: "رقم الصنف مستخدم بالفعل.",
+    en: "That item number is already used.",
+    fr: "Ce numéro d’article est déjà utilisé.",
+  },
+  "admin.error.stock_invalid": {
+    ar: "المخزون يجب أن يكون عدداً صحيحاً يساوي 0 أو أكثر.",
+    en: "Stock must be a whole number of 0 or more.",
+    fr: "Le stock doit être un entier supérieur ou égal à 0.",
+  },
+  "admin.error.size_invalid": {
+    ar: "المقاس يجب أن يكون عدداً صحيحاً بين 39 و45.",
+    en: "Size must be a whole number from 39 to 45.",
+    fr: "La taille doit être un entier entre 39 et 45.",
+  },
+  "admin.error.size_taken": {
+    ar: "هذا المقاس موجود بالفعل لهذا الحذاء.",
+    en: "That size already exists for this shoe.",
+    fr: "Cette taille existe déjà pour cette chaussure.",
+  },
+  "admin.error.status_invalid": {
+    ar: "اختر حالة صالحة.",
+    en: "Choose a valid status.",
+    fr: "Choisissez un statut valide.",
+  },
+  "admin.error.shoe_unknown": {
+    ar: "هذا الحذاء لم يعد موجوداً. أعد تحميل الصفحة.",
+    en: "This shoe no longer exists. Reload the page.",
+    fr: "Cette chaussure n’existe plus. Rechargez la page.",
+  },
+  "admin.error.shoe_has_orders": {
+    ar: "لا يمكن حذف حذاء له طلبات. احذف طلباته أولاً أو اترك مخزونه 0.",
+    en: "A shoe with orders can’t be deleted. Delete its orders first, or set its stock to 0.",
+    fr: "Impossible de supprimer une chaussure qui a des commandes. Supprimez-les d’abord ou mettez son stock à 0.",
+  },
+  "admin.error.image_missing": {
+    ar: "اختر صورة أولاً.",
+    en: "Choose a photo first.",
+    fr: "Choisissez d’abord une photo.",
+  },
+  "admin.error.image_too_large": {
+    ar: "يجب ألا يتجاوز حجم الصورة 10 ميغابايت.",
+    en: "The photo must be 10 MB or smaller.",
+    fr: "La photo doit faire 10 Mo maximum.",
+  },
+  "admin.error.image_invalid": {
+    ar: "تعذّر قراءة الصورة. استخدم JPEG أو PNG أو WebP.",
+    en: "That photo can’t be read. Use JPEG, PNG, or WebP.",
+    fr: "Photo illisible. Utilisez JPEG, PNG ou WebP.",
+  },
+  "admin.error.image_unknown": {
+    ar: "هذه الصورة لم تعد موجودة. أعد تحميل الصفحة.",
+    en: "This photo no longer exists. Reload the page.",
+    fr: "Cette photo n’existe plus. Rechargez la page.",
+  },
+  "admin.error.social_invalid": {
+    ar: "صحّح الحقول المحددة ثم احفظ مجدداً.",
+    en: "Fix the highlighted fields, then save again.",
+    fr: "Corrigez les champs signalés, puis enregistrez à nouveau.",
+  },
+  "admin.error.failed": {
+    ar: "تعذّر تنفيذ العملية. حاول مجدداً.",
+    en: "Something went wrong. Try again.",
+    fr: "Échec de l'opération. Réessayez.",
   },
 } as const;
 

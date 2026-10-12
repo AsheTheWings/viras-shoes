@@ -21,6 +21,7 @@ import { ShoePhoto } from "@/components/shoe-photo";
 import { OrderForm } from "@/components/order-form";
 import { useLocale } from "@/lib/locale-context";
 import { availableSizes, formatPrice } from "@/lib/catalog";
+import type { TranslationKey } from "@/lib/i18n";
 import type { ShoeWithSizes } from "@/lib/types";
 
 export function ProductDetail({
@@ -116,7 +117,11 @@ export function ProductDetail({
               <button
                 key={image.stem}
                 onClick={() => setPhoto(index)}
-                aria-label={`${t("shop.photo")} ${index + 1}`}
+                aria-label={
+                  image.side
+                    ? t(`photo.side.${image.side}` as TranslationKey)
+                    : `${t("shop.photo")} ${index + 1}`
+                }
                 aria-pressed={photo === index}
                 className={photo === index ? "is-selected" : ""}
               >
