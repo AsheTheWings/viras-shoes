@@ -23,7 +23,12 @@ function resolveLocale(raw: string | undefined): Locale {
 
 function shell(content: React.ReactNode, locale: Locale) {
   return (
-    <main dir={isRtl(locale) ? "rtl" : "ltr"} className="h-dvh overflow-y-auto bg-neutral-100 text-neutral-900">
+    <main
+      dir={isRtl(locale) ? "rtl" : "ltr"}
+      // `relative` keeps absolutely positioned descendants inside this
+      // scroll container instead of stretching the document.
+      className="relative h-dvh overflow-y-auto bg-neutral-100 text-neutral-900"
+    >
       <DocumentLocale locale={locale} />
       <header className="sticky top-0 z-20 border-b border-neutral-200 bg-white/90 backdrop-blur">
         <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-3 px-4 py-3">
