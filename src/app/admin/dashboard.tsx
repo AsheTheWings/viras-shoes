@@ -9,12 +9,12 @@ import {
   ShoppingBag,
   type LucideIcon,
 } from "lucide-react";
-import type { SocialLinks } from "@/lib/social";
+import type { SiteSettings } from "@/lib/site-settings";
 import type { GalleryImage, Shoe, ShoeSize } from "@/lib/types";
 import { t, type Locale } from "@/lib/i18n";
 import { OrdersSection } from "./orders-section";
 import { ShoesSection } from "./shoes-section";
-import { SocialSection } from "./social-section";
+import { SettingsSection } from "./settings-section";
 
 // Orders table shape. `select=*` keeps working if columns are added later.
 export interface AdminOrder {
@@ -33,7 +33,7 @@ interface DashboardProps {
   shoes: Shoe[];
   sizes: ShoeSize[];
   imagesByItem: Record<number, GalleryImage[]>;
-  social: SocialLinks;
+  settings: SiteSettings;
   locale: Locale;
 }
 
@@ -44,7 +44,7 @@ export function AdminDashboard({
   shoes,
   sizes,
   imagesByItem,
-  social,
+  settings,
   locale,
 }: DashboardProps) {
   const [tab, setTab] = useState<Tab>("orders");
@@ -129,7 +129,7 @@ export function AdminDashboard({
         ) : tab === "shoes" ? (
           <ShoesSection shoes={shoes} sizes={sizes} imagesByItem={imagesByItem} locale={locale} />
         ) : (
-          <SocialSection links={social} locale={locale} />
+          <SettingsSection settings={settings} locale={locale} />
         )}
       </div>
     </div>

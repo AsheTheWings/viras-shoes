@@ -1,6 +1,6 @@
 import { supabase } from "./supabase";
 import { listShoeImagesByItem, readSiteSettings } from "./shoe-images";
-import type { SocialLinks } from "./social";
+import { parseSiteSettings, type SiteSettings } from "./site-settings";
 import type { GalleryImage, ShoeWithSizes } from "./types";
 
 export async function getShoes(): Promise<ShoeWithSizes[]> {
@@ -34,11 +34,11 @@ export async function getShoes(): Promise<ShoeWithSizes[]> {
   }));
 }
 
-/** Social profiles for the shop; none when settings are unavailable. */
-export async function getSocialLinks(): Promise<SocialLinks> {
+/** Shop settings; defaults when stored settings are unavailable. */
+export async function getSiteSettings(): Promise<SiteSettings> {
   try {
-    return (await readSiteSettings()).social;
+    return await readSiteSettings();
   } catch {
-    return {};
+    return parseSiteSettings(null);
   }
 }

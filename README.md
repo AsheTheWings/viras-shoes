@@ -102,9 +102,16 @@ one photo and uses the lightweight variant for thumbnails and the
 full-quality variant for detail views. Missing photos and failed image loads
 display a product placeholder.
 
+The "Contact & social" tab edits the shop's contact phone and email and its
+social media accounts; all are stored in `settings/site.json` in the
+`assets` bucket. The phone and email appear in the shop's contact section,
+in each product's help line, and on the shop error page. Phone numbers are
+stored in international format; Moroccan local numbers (05, 06, 07) get the
+`212` prefix. Until contact details are first saved, the shop shows
+`+212 709 722 077` and `viras.shoes@outlook.com`.
+
 Social media accounts (Instagram, Facebook, TikTok, WhatsApp, YouTube,
 Snapchat, and X) accept a profile link or `@username`; WhatsApp also accepts
-a phone number, and Moroccan local numbers get the `212` prefix. Links are
-stored as canonical `https` URLs in `settings/site.json` in the `assets`
-bucket and appear as icons in the shop's contact section and footer. Empty
-fields are hidden.
+a phone number. Links are stored as canonical `https` URLs and appear as
+icons in the shop's contact section and footer. Empty contact and social
+fields are hidden in the shop.

@@ -12,9 +12,6 @@ export const SOCIAL_PLATFORMS = [
 
 export type SocialPlatform = (typeof SOCIAL_PLATFORMS)[number];
 export type SocialLinks = Partial<Record<SocialPlatform, string>>;
-export interface SiteSettings {
-  social: SocialLinks;
-}
 
 export const SOCIAL_NAMES: Record<SocialPlatform, string> = {
   instagram: "Instagram",
@@ -109,24 +106,6 @@ export function normalizeSocialLink(
   url.protocol = "https:";
   if (url.pathname === "/" && !url.search) return { ok: false };
   return { ok: true, url: url.toString() };
-}
-
-/** Validated settings from stored JSON; invalid or unknown entries drop out. */
-export function parseSiteSettings(raw: unknown): SiteSettings {
-  const social: SocialLinks = {};
-  const source =
-    raw && typeof raw === "object" && "social" in raw
-      ? (raw as { social: unknown }).social
-      : null;
-  if (source && typeof source === "object") {
-    for (const platform of SOCIAL_PLATFORMS) {
-      const value = (source as Record<string, unknown>)[platform];
-      if (typeof value !== "string") continue;
-      const result = normalizeSocialLink(platform, value);
-      if (result.ok && result.url) social[platform] = result.url;
-    }
-  }
-  return { social };
 }
 
 /** Configured links in display order. */

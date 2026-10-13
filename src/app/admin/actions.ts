@@ -20,11 +20,12 @@ import {
 } from "@/lib/admin-errors";
 import { isPhotoSide, parseStem, uploadFilename } from "@/lib/photo-sides";
 import { SETTINGS_PATH, listAssetNames, serviceDb } from "@/lib/shoe-images";
+import { SOCIAL_PLATFORMS, normalizeSocialLink } from "@/lib/social";
 import {
-  SOCIAL_PLATFORMS,
-  normalizeSocialLink,
+  normalizeShopEmail,
+  normalizeShopPhone,
   type SiteSettings,
-} from "@/lib/social";
+} from "@/lib/site-settings";
 
 export type LoginResult =
   | { ok: true }
@@ -373,18 +374,30 @@ export async function deleteShoeImage(
   }, SHOP_PATHS);
 }
 
-export async function saveSocialLinks(
-  input: Record<string, string>,
-): Promise<AdminResult> {
+export async function saveSiteSettings(input: {
+  phone: string;
+  email: string;
+  social: Record<string, string>;
+}): Promise<AdminResult> {
   if (!(await signedIn())) return fail("not_signed_in");
-  const settings: SiteSettings = { social: {} };
   const invalid: string[] = [];
+  const phone = normalizeShopPhone(String(input.phone ?? ""));
+  const email = normalizeShopEmail(String(input.email ?? ""));
+  if (!phone.ok) invalid.push("phone");
+  if (!email.ok) invalid.push("email");
+  const settings: SiteSettings = {
+    contact: {
+      phone: phone.ok ? phone.phone : null,
+      email: email.ok ? email.email : null,
+    },
+    social: {},
+  };
   for (const platform of SOCIAL_PLATFORMS) {
-    const result = normalizeSocialLink(platform, String(input[platform] ?? ""));
+    const result = normalizeSocialLink(platform, String(input.social?.[platform] ?? ""));
     if (!result.ok) invalid.push(platform);
     else if (result.url) settings.social[platform] = result.url;
   }
-  if (invalid.length) return fail("social_invalid", invalid);
+  if (invalid.length) return fail("fields_invalid", invalid);
   return adminAction(async (db) => {
     const { error } = await db.storage
       .from("assets")

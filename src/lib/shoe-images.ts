@@ -2,7 +2,7 @@
 // Import only from server components, server actions, or lib/queries.
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { groupGallery } from "./photo-sides";
-import { parseSiteSettings, type SiteSettings } from "./social";
+import { parseSiteSettings, type SiteSettings } from "./site-settings";
 import type { GalleryImage } from "./types";
 
 export const SETTINGS_PATH = "settings/site.json";

@@ -1,8 +1,8 @@
-import { getShoes, getSocialLinks } from "@/lib/queries";
+import { getShoes } from "@/lib/queries";
 import { ShoeGrid } from "@/components/shoe-grid";
 
 export default async function Home() {
-  const [shoes, social] = await Promise.all([getShoes(), getSocialLinks()]);
+  const shoes = await getShoes();
 
-  return <ShoeGrid shoes={shoes} social={social} />;
+  return <ShoeGrid shoes={shoes} />;
 }

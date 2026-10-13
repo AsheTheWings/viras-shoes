@@ -666,9 +666,9 @@ export const translations = {
     fr: "Administration",
   },
   "admin.tabs.social": {
-    ar: "التواصل الاجتماعي",
-    en: "Social media",
-    fr: "Réseaux sociaux",
+    ar: "التواصل والشبكات",
+    en: "Contact & social",
+    fr: "Contact & réseaux",
   },
   "admin.orders.status.pending": { ar: "قيد الانتظار", en: "Pending", fr: "En attente" },
   "admin.orders.status.confirmed": { ar: "مؤكد", en: "Confirmed", fr: "Confirmée" },
@@ -740,10 +740,55 @@ export const translations = {
     en: "Enter a profile link or @username. For WhatsApp you can enter a phone number. Leave a field empty to hide it from the shop.",
     fr: "Saisissez un lien de profil ou un @identifiant. Pour WhatsApp, un numéro de téléphone suffit. Laissez un champ vide pour le masquer de la boutique.",
   },
-  "admin.social.save": {
-    ar: "حفظ الحسابات",
-    en: "Save accounts",
-    fr: "Enregistrer les comptes",
+  "admin.settings.save": {
+    ar: "حفظ التغييرات",
+    en: "Save changes",
+    fr: "Enregistrer les modifications",
+  },
+  "admin.contact.title": {
+    ar: "بيانات التواصل",
+    en: "Contact details",
+    fr: "Coordonnées",
+  },
+  "admin.contact.hint": {
+    ar: "تظهر في قسم التواصل وفي تفاصيل كل حذاء وفي صفحة الخطأ. اترك الحقل فارغاً لإخفائه.",
+    en: "Shown in the shop’s contact section, on every product, and on the error page. Leave a field empty to hide it.",
+    fr: "Affichées dans la section contact, sur chaque produit et sur la page d’erreur. Laissez un champ vide pour le masquer.",
+  },
+  "admin.contact.phone": {
+    ar: "رقم الهاتف",
+    en: "Phone number",
+    fr: "Numéro de téléphone",
+  },
+  "admin.contact.phoneHint": {
+    ar: "رقم مغربي مثل 0612345678 أو رقم دولي يبدأ بـ +",
+    en: "A Moroccan number such as 0612345678, or an international number starting with +",
+    fr: "Un numéro marocain comme 0612345678, ou un numéro international commençant par +",
+  },
+  "admin.contact.email": {
+    ar: "البريد الإلكتروني",
+    en: "Email",
+    fr: "E-mail",
+  },
+  "admin.contact.phoneInvalid": {
+    ar: "رقم هاتف غير صالح",
+    en: "Not a valid phone number",
+    fr: "Numéro de téléphone invalide",
+  },
+  "admin.contact.emailInvalid": {
+    ar: "بريد إلكتروني غير صالح",
+    en: "Not a valid email address",
+    fr: "Adresse e-mail invalide",
+  },
+  "admin.contact.shownAs": {
+    ar: "يظهر هكذا:",
+    en: "Shown as",
+    fr: "Affiché :",
+  },
+  "admin.contact.hidden": {
+    ar: "مخفي في المتجر",
+    en: "Hidden in the shop",
+    fr: "Masqué dans la boutique",
   },
   "admin.social.invalid": {
     ar: "رابط أو اسم مستخدم غير صالح لهذه المنصة",
@@ -841,7 +886,7 @@ export const translations = {
     en: "This photo no longer exists. Reload the page.",
     fr: "Cette photo n’existe plus. Rechargez la page.",
   },
-  "admin.error.social_invalid": {
+  "admin.error.fields_invalid": {
     ar: "صحّح الحقول المحددة ثم احفظ مجدداً.",
     en: "Fix the highlighted fields, then save again.",
     fr: "Corrigez les champs signalés, puis enregistrez à nouveau.",
