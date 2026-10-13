@@ -14,6 +14,7 @@ import {
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { ProductDetail } from "@/components/product-detail";
 import { ShoePhoto } from "@/components/shoe-photo";
+import { useShopSettings } from "@/components/shop-settings";
 import { SocialLinksList } from "@/components/social-links";
 import { useLocale } from "@/lib/locale-context";
 import {
@@ -23,17 +24,12 @@ import {
   type CatalogSort,
 } from "@/lib/catalog";
 import { useFavorites, useProductLink } from "@/lib/shop-preferences";
-import type { SocialLinks } from "@/lib/social";
+import { formatShopPhone } from "@/lib/site-settings";
 import type { ShoeWithSizes } from "@/lib/types";
 
-export function ShoeGrid({
-  shoes,
-  social,
-}: {
-  shoes: ShoeWithSizes[];
-  social: SocialLinks;
-}) {
+export function ShoeGrid({ shoes }: { shoes: ShoeWithSizes[] }) {
   const { locale, t, dir } = useLocale();
+  const { contact, social } = useShopSettings();
   const [query, setQuery] = useState("");
   const [size, setSize] = useState<number | null>(null);
   const [sort, setSort] = useState<CatalogSort>("featured");
@@ -297,22 +293,26 @@ export function ShoeGrid({
           />
         </div>
         <div className="contact-links">
-          <a href="tel:+212709722077">
-            <Phone size={19} />
-            <span>
-              {t("shop.call")}
-              <strong dir="ltr">+212 709 722 077</strong>
-            </span>
-            <ArrowUpRight size={18} />
-          </a>
-          <a href="mailto:viras.shoes@outlook.com">
-            <Mail size={19} />
-            <span>
-              {t("shop.email")}
-              <strong>viras.shoes@outlook.com</strong>
-            </span>
-            <ArrowUpRight size={18} />
-          </a>
+          {contact.phone ? (
+            <a href={`tel:${contact.phone}`}>
+              <Phone size={19} />
+              <span>
+                {t("shop.call")}
+                <strong dir="ltr">{formatShopPhone(contact.phone)}</strong>
+              </span>
+              <ArrowUpRight size={18} />
+            </a>
+          ) : null}
+          {contact.email ? (
+            <a href={`mailto:${contact.email}`}>
+              <Mail size={19} />
+              <span>
+                {t("shop.email")}
+                <strong>{contact.email}</strong>
+              </span>
+              <ArrowUpRight size={18} />
+            </a>
+          ) : null}
         </div>
       </section>
       <footer className="shop-footer">

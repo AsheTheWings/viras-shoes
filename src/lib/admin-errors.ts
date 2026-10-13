@@ -18,7 +18,7 @@ export const ADMIN_ERRORS = [
   "image_too_large",
   "image_invalid",
   "image_unknown",
-  "social_invalid",
+  "fields_invalid",
   "failed",
 ] as const;
 

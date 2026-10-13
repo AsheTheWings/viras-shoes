@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { normalizeSocialLink, parseSiteSettings } from "../src/lib/social.ts";
+import { normalizeSocialLink } from "../src/lib/social.ts";
 
 const url = (platform: Parameters<typeof normalizeSocialLink>[0], raw: string) => {
   const result = normalizeSocialLink(platform, raw);
@@ -35,14 +35,4 @@ test("unit: links to other hosts, credentials, scripts, and bare homepages are r
   ]) {
     assert.equal(url("instagram", raw), "invalid", raw);
   }
-});
-
-test("unit: stored settings keep only valid known platforms", () => {
-  assert.deepEqual(
-    parseSiteSettings({
-      social: { instagram: "@viras", facebook: "https://evil.example/x", myspace: "@a", x: 4 },
-    }),
-    { social: { instagram: "https://www.instagram.com/viras" } },
-  );
-  assert.deepEqual(parseSiteSettings(null), { social: {} });
 });

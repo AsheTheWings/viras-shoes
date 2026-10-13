@@ -19,8 +19,10 @@ import {
 } from "@/components/ui/dialog";
 import { ShoePhoto } from "@/components/shoe-photo";
 import { OrderForm } from "@/components/order-form";
+import { useShopSettings } from "@/components/shop-settings";
 import { useLocale } from "@/lib/locale-context";
 import { availableSizes, formatPrice } from "@/lib/catalog";
+import { formatShopPhone } from "@/lib/site-settings";
 import type { TranslationKey } from "@/lib/i18n";
 import type { ShoeWithSizes } from "@/lib/types";
 
@@ -36,6 +38,7 @@ export function ProductDetail({
   onToggleFavorite: () => void;
 }) {
   const { locale, t, dir } = useLocale();
+  const { contact } = useShopSettings();
   const [photo, setPhoto] = useState(0);
   const [zoom, setZoom] = useState(false);
   const [shareState, setShareState] = useState<"idle" | "copied" | "error">(
@@ -166,13 +169,22 @@ export function ProductDetail({
             {t("shop.share.error")}
           </p>
         )}
-        <div className="detail-help">
-          <span>{t("shop.help")}</span>
-          <a href="tel:+212709722077" dir="ltr">
-            +212 709 722 077
-            <ArrowUpRight size={16} />
-          </a>
-        </div>
+        {contact.phone || contact.email ? (
+          <div className="detail-help">
+            <span>{t("shop.help")}</span>
+            {contact.phone ? (
+              <a href={`tel:${contact.phone}`} dir="ltr">
+                {formatShopPhone(contact.phone)}
+                <ArrowUpRight size={16} />
+              </a>
+            ) : (
+              <a href={`mailto:${contact.email}`}>
+                {contact.email}
+                <ArrowUpRight size={16} />
+              </a>
+            )}
+          </div>
+        ) : null}
       </div>
       <Dialog open={zoom} onOpenChange={setZoom}>
         <DialogContent

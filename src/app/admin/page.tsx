@@ -93,7 +93,7 @@ export default async function AdminPage() {
       shoes={(shoesData ?? []) as Shoe[]}
       sizes={(sizesData ?? []) as ShoeSize[]}
       imagesByItem={imagesByItem}
-      social={settings.social}
+      settings={settings}
       locale={locale}
     />,
     locale,
