@@ -153,7 +153,7 @@ function SideSlot({
         ) : null}
       </div>
       <p className="mt-2 truncate text-xs font-medium" title={label}>{label}</p>
-      <div className="mt-2 flex items-center gap-1">
+      <div className="relative mt-2 flex items-center gap-1">
         <input
           ref={input}
           type="file"
@@ -263,7 +263,7 @@ function PhotosManager({
         ))}
       </div>
 
-      <div className="mt-4 flex flex-wrap items-center gap-2">
+      <div className="relative mt-4 flex flex-wrap items-center gap-2">
         <h4 className="text-sm font-semibold">{t("admin.shoes.extraPhotos", locale)}</h4>
         <input
           ref={input}
